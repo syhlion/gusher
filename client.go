@@ -15,7 +15,7 @@ const (
 type Client struct {
 	ws   *websocket.Conn
 	uid  string
-	send chan Message
+	send chan []byte
 	room *Room
 }
 
@@ -33,11 +33,11 @@ func (c *Client) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(readWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(readWait)); return nil })
 	for {
-		m := Message{}
-		err := c.ws.ReadJSON(&m)
+		_, msg, err := c.ws.ReadMessage()
 		if err != nil {
 			return
 		}
+		c.send <- msg
 	}
 
 }
@@ -56,7 +56,7 @@ func (c *Client) writePump() {
 				c.Write(websocket.CloseMessage, []byte{})
 				return
 			}
-			if err := c.ws.WriteJSON(msg); err != nil {
+			if err := c.ws.WriteMessage(websocket.TextMessage, msg); err != nil {
 				return
 			}
 
