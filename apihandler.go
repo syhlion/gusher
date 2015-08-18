@@ -6,7 +6,17 @@ import (
 	"net/http"
 )
 
-//創建
+func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+
+	}
+}
+
+func ListClientHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
+//註冊
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		return
@@ -32,6 +42,7 @@ func PushHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	room.Boradcast <- []byte(content)
+	//length := len(room.connections)
 
 	fmt.Fprintf(w, "Scuess, %q", html.EscapeString(r.URL.Path))
 }

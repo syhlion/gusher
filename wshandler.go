@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gorilla/websocket"
 	"net/http"
+	"strings"
 )
 
 var upgrader = websocket.Upgrader{
@@ -18,28 +19,43 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := r.FormValue("key")
-	if u == "" {
+	keys := r.FormValue("keys")
+	if keys == "" {
 		//TODO 補log
 		return
 	}
+
+	keys_array := strings.SplitN(keys, ":", 2)
+	keys_total := len(keys_array)
+	if keys_total != 2 {
+		return
+	}
+	app_key := keys_array[0]
+	user_token := keys_array[1]
+
+	//csrf
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		//TODO 補logo
 		return
 	}
-	coll, err := collection.Join(u)
+
+	//collection join
+	coll, err := collection.Join(app_key)
 	if err != nil {
 		return
 	}
 
+	// new client
 	client := &Client{
-		ws:   ws,
-		room: coll,
-		send: make(chan []byte),
+		token: user_token,
+		ws:    ws,
+		room:  coll,
+		send:  make(chan []byte),
 	}
 
+	// register client
 	coll.Register <- client
-	go client.writePump()
-	client.readPump()
+	client.writePump()
+	//client.readPump()
 }

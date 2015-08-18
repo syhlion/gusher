@@ -13,9 +13,10 @@ const (
 )
 
 type Client struct {
-	ws   *websocket.Conn
-	send chan []byte
-	room *Room
+	token string
+	ws    *websocket.Conn
+	send  chan []byte
+	room  *Room
 }
 
 func (c *Client) write(msgType int, msg []byte) error {
