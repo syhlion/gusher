@@ -1,9 +1,5 @@
 package main
 
-import (
-	"log"
-)
-
 type Room struct {
 	id          string
 	connections map[*Client]bool
@@ -31,12 +27,9 @@ func (r *Room) run() {
 		case c := <-r.Unregister:
 			if _, ok := r.connections[c]; ok {
 				delete(r.connections, c)
-				log.Println("bbb")
 				close(c.send)
-				log.Println("ccc")
 			}
 			if len(r.connections) == 0 {
-				log.Println("aaa")
 				break
 			}
 		case m := <-r.Boradcast:

@@ -3,32 +3,32 @@ package main
 import (
 	"fmt"
 	"html"
-	"log"
 	"net/http"
 )
 
-func ApiHandler(w http.ResponseWriter, r *http.Request) {
+//創建
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "POST" {
+		return
+	}
+}
 
-	log.Println("post")
+//Push
+func PushHandler(w http.ResponseWriter, r *http.Request) {
+
 	if r.Method != "POST" {
-		log.Fatal("not post")
 		return
 	}
 
 	key := r.FormValue("key")
 	content := r.FormValue("content")
 
-	log.Println(key, content)
 	if key == "" || content == "" {
-		log.Fatal("no content")
 		return
 	}
 
-	log.Println("read get")
 	room, _ := collection.Get(key)
-	log.Println("get OK")
 	if room == nil {
-		log.Fatal("no user")
 		return
 	}
 	room.Boradcast <- []byte(content)

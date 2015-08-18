@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gorilla/websocket"
-	"log"
 	"time"
 )
 
@@ -62,7 +61,6 @@ func (c *Client) writePump() {
 
 		case <-t.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-				log.Println("test")
 				return
 			}
 

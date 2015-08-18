@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/gorilla/websocket"
-	"log"
 	"net/http"
 )
 
@@ -16,7 +15,6 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Metho not allowed", 405)
 		//TODO 補log
-		log.Println("error")
 		return
 	}
 
@@ -25,7 +23,6 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 		//TODO 補log
 		return
 	}
-	log.Println(u)
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		//TODO 補logo
