@@ -6,8 +6,8 @@ import (
 )
 
 type Collection struct {
-	lock  *sync.RWMutex
-	rooms map[string]*Room
+	lock *sync.RWMutex
+	apps map[string]*Room
 }
 
 type errorCollection struct {
@@ -21,18 +21,23 @@ func NewCollection() *Collection {
 	return &Collection{new(sync.RWMutex), make(map[string]*Room)}
 }
 
-func (c *Collection) Join(id string) (room *Room, err error) {
+func (c *Collection) Join(app_key string) (room *Room, err error) {
+
+	//app_key := keys[0]
+	//user_token := keys[1]
 	//DB驗證在這邊驗證尚未實作
-	if id != "test" {
-		return nil, &errorCollection{"empt"}
+
+	//DB 驗證結束
+	if app_key != "test" {
+		return nil, &errorCollection{"empty"}
 	}
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if _, ok := c.rooms[id]; !ok {
-		c.rooms[id] = NewRoom(id)
-		go c.rooms[id].run()
+	if _, ok := c.apps[app_key]; !ok {
+		c.apps[app_key] = NewRoom(app_key)
+		go c.apps[app_key].run()
 	}
-	room = c.rooms[id]
+	room = c.apps[app_key]
 
 	return
 }
@@ -40,7 +45,7 @@ func (c *Collection) Join(id string) (room *Room, err error) {
 func (c *Collection) Get(id string) (room *Room, err error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	if val, ok := c.rooms[id]; ok {
+	if val, ok := c.apps[id]; ok {
 		room = val
 	} else {
 		err = &errorCollection{"no colleciotn"}
@@ -49,16 +54,17 @@ func (c *Collection) Get(id string) (room *Room, err error) {
 
 }
 
+//定時掃除空的app集合
 func (c *Collection) run() {
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(10 * time.Minute)
 	for {
 		select {
 		case <-ticker.C:
 			c.lock.Lock()
-			for id, room := range c.rooms {
+			for id, room := range c.apps {
 				if len(room.connections) == 0 {
-					delete(c.rooms, id)
+					delete(c.apps, id)
 				}
 			}
 			c.lock.Unlock()
