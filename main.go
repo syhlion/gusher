@@ -43,7 +43,9 @@ func main() {
 	r.HandleFunc("/unregister", UnregisterHandler).Methods("POST")
 
 	//list how many client
-	r.HandleFunc("/{key}/list", ListClientHandler).Methods("GET")
+	r.HandleFunc("/{key}/listonlineuser", ListClientHandler).Methods("GET")
+
+	r.HandleFunc("/listapp", ListAppHandler).Methods("GET")
 	log.Info("Server Start")
 	http.ListenAndServe(":8001", r)
 }

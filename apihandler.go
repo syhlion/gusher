@@ -23,6 +23,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ListAppHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 //Push
 func PushHandler(w http.ResponseWriter, r *http.Request) {
 

@@ -13,10 +13,10 @@ const (
 )
 
 type Client struct {
-	token string
-	ws    *websocket.Conn
-	send  chan []byte
-	room  *Room
+	tag  string
+	ws   *websocket.Conn
+	send chan []byte
+	app  *App
 }
 
 func (c *Client) write(msgType int, msg []byte) error {
@@ -26,7 +26,7 @@ func (c *Client) write(msgType int, msg []byte) error {
 func (c *Client) readPump() {
 	defer func() {
 		c.ws.Close()
-		c.room.Unregister <- c
+		c.app.Unregister <- c
 	}()
 
 	c.ws.SetReadLimit(maxMessageSize)
@@ -46,7 +46,7 @@ func (c *Client) writePump() {
 	t := time.NewTicker(pingPeriod)
 	defer func() {
 		c.ws.Close()
-		c.room.Unregister <- c
+		c.app.Unregister <- c
 		t.Stop()
 	}()
 	for {

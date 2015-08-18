@@ -7,7 +7,7 @@ import (
 
 type Collection struct {
 	lock *sync.RWMutex
-	apps map[string]*Room
+	apps map[string]*App
 }
 
 type errorCollection struct {
@@ -18,10 +18,10 @@ func (e *errorCollection) Error() string {
 	return e.s
 }
 func NewCollection() *Collection {
-	return &Collection{new(sync.RWMutex), make(map[string]*Room)}
+	return &Collection{new(sync.RWMutex), make(map[string]*App)}
 }
 
-func (c *Collection) Join(app_key string) (room *Room, err error) {
+func (c *Collection) Join(app_key string) (room *App, err error) {
 
 	//app_key := keys[0]
 	//user_token := keys[1]
@@ -34,7 +34,7 @@ func (c *Collection) Join(app_key string) (room *Room, err error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if _, ok := c.apps[app_key]; !ok {
-		c.apps[app_key] = NewRoom(app_key)
+		c.apps[app_key] = NewApp(app_key)
 		go c.apps[app_key].run()
 	}
 	room = c.apps[app_key]
@@ -42,7 +42,7 @@ func (c *Collection) Join(app_key string) (room *Room, err error) {
 	return
 }
 
-func (c *Collection) Get(id string) (room *Room, err error) {
+func (c *Collection) Get(id string) (room *App, err error) {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
 	if val, ok := c.apps[id]; ok {

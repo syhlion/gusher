@@ -31,7 +31,7 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	app_key := keys_array[0]
-	user_token := keys_array[1]
+	user_tag := keys_array[1]
 
 	//csrf
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -41,21 +41,21 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//collection join
-	coll, err := collection.Join(app_key)
+	app, err := collection.Join(app_key)
 	if err != nil {
 		return
 	}
 
 	// new client
 	client := &Client{
-		token: user_token,
-		ws:    ws,
-		room:  coll,
-		send:  make(chan []byte),
+		tag:  user_tag,
+		ws:   ws,
+		app:  app,
+		send: make(chan []byte),
 	}
 
 	// register client
-	coll.Register <- client
+	app.Register <- client
 	client.writePump()
 	//client.readPump()
 }
