@@ -63,7 +63,7 @@ func (c *Collection) run() {
 		case <-ticker.C:
 			c.lock.Lock()
 			for id, room := range c.apps {
-				if len(room.connections) == 0 {
+				if len(room.Connections) == 0 {
 					delete(c.apps, id)
 				}
 			}

@@ -47,15 +47,10 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// new client
-	client := &Client{
-		tag:  user_tag,
-		ws:   ws,
-		app:  app,
-		send: make(chan []byte),
-	}
+	client := NewClient(user_tag, ws, app)
 
 	// register client
 	app.Register <- client
-	client.writePump()
+	client.WritePump()
 	//client.readPump()
 }

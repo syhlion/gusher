@@ -13,20 +13,31 @@ const (
 )
 
 type Client struct {
-	tag  string
+	Tag  string
 	ws   *websocket.Conn
-	send chan []byte
-	app  *App
+	Send chan []byte
+	App  *App
+}
+
+func NewClient(tag string, ws *websocket.Conn, app *App) *Client {
+	return &Client{
+		Tag:  tag,
+		ws:   ws,
+		Send: make(chan []byte, 1024),
+		App:  app,
+	}
 }
 
 func (c *Client) write(msgType int, msg []byte) error {
 	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
 	return c.ws.WriteMessage(msgType, msg)
 }
+
+/* 暫時用不到的功能
 func (c *Client) readPump() {
 	defer func() {
 		c.ws.Close()
-		c.app.Unregister <- c
+		c.App.Unregister <- c
 	}()
 
 	c.ws.SetReadLimit(maxMessageSize)
@@ -37,21 +48,21 @@ func (c *Client) readPump() {
 		if err != nil {
 			return
 		}
-		c.send <- msg
+		c.Send <- msg
 	}
 
 }
-
-func (c *Client) writePump() {
+*/
+func (c *Client) WritePump() {
 	t := time.NewTicker(pingPeriod)
 	defer func() {
 		c.ws.Close()
-		c.app.Unregister <- c
+		c.App.Unregister <- c
 		t.Stop()
 	}()
 	for {
 		select {
-		case msg, ok := <-c.send:
+		case msg, ok := <-c.Send:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
 				return
