@@ -3,10 +3,16 @@ package main
 import (
 	"database/sql"
 	"github.com/Sirupsen/logrus"
+	"github.com/codegangsta/cli"
 	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
+	"os"
 	"time"
+)
+
+const (
+	APP_VER = "0.2.0"
 )
 
 var collection = NewCollection()
@@ -19,10 +25,9 @@ func makeTimestamp() (t int64) {
 	t = time.Now().UnixNano() / int64(time.Millisecond)
 	return
 }
-
 func main() {
-	log.Level = logrus.DebugLevel
-	log.Formatter = &logrus.TextFormatter{ForceColors: true, FullTimestamp: true}
+	logformat := &logrus.TextFormatter{FullTimestamp: true}
+	log.Formatter = logformat
 	db, err := sql.Open("sqlite3", "./appdata.sqlite")
 	if err != nil {
 		log.Fatal(err)
@@ -56,6 +61,50 @@ func main() {
 	//list how many client
 	r.HandleFunc("/{app_key}/listonlineuser", ListClientHandler).Methods("GET")
 
-	log.Info("Server Start")
-	log.Fatal(http.ListenAndServe(":8001", r))
+	gusher := cli.NewApp()
+	gusher.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "addr",
+			Value: ":8001",
+			Usage: "Input like 127.0.0.1:8001 or :8011",
+		},
+		cli.StringFlag{
+			Name:  "env",
+			Value: "PRODUCTION",
+			Usage: "PRODUCTION | DEVELOPMENT | DEBUG",
+		},
+		cli.StringFlag{
+			Name:  "log",
+			Value: "console",
+			Usage: "Input like /home/user/gusher.log | console",
+		},
+	}
+	gusher.Name = "gusher"
+	gusher.Version = APP_VER
+	gusher.Action = func(c *cli.Context) {
+		env := func() logrus.Level {
+			switch c.String("env") {
+			case "PRODUCTION":
+				return logrus.InfoLevel
+				break
+			case "DEVELOPMENT":
+				return logrus.InfoLevel
+			case "DEBUG":
+				return logrus.DebugLevel
+			}
+			return logrus.WarnLevel
+		}()
+		if c.String("log") != "console" {
+			if file, err := os.OpenFile(c.String("log"), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
+				log.Out = file
+				logformat.DisableColors = true
+			}
+		}
+		log.Level = env
+		log.Info("Server Start ", c.String("addr"))
+		log.Fatal(http.ListenAndServe(c.String("addr"), r))
+	}
+
+	gusher.Run(os.Args)
+
 }
