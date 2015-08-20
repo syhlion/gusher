@@ -21,7 +21,12 @@ func NewCollection() *Collection {
 	return &Collection{new(sync.RWMutex), make(map[string]*App)}
 }
 
-func (c *Collection) Join(app_key string) (room *App) {
+func (c *Collection) Join(app_key string) (room *App, err error) {
+
+	if !appdata.IsExist(app_key) {
+		err = &errorCollection{"app_key no exist"}
+		return
+	}
 
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -29,7 +34,7 @@ func (c *Collection) Join(app_key string) (room *App) {
 		c.apps[app_key] = NewApp(app_key)
 		go c.apps[app_key].run()
 	}
-	log.Info("Join ", app_key)
+	log.Debug("Join ", app_key)
 	room = c.apps[app_key]
 
 	return
@@ -37,6 +42,7 @@ func (c *Collection) Join(app_key string) (room *App) {
 
 func (c *Collection) Get(app_key string) (room *App, err error) {
 	if !appdata.IsExist(app_key) {
+		log.Debug(app_key, " ", err)
 		err = &errorCollection{"Error app_key, Please Register App_key"}
 		return
 	}
@@ -45,6 +51,7 @@ func (c *Collection) Get(app_key string) (room *App, err error) {
 	if val, ok := c.apps[app_key]; ok {
 		room = val
 	} else {
+		log.Debug(app_key, " ", err)
 		err = &errorCollection{"No User In the App"}
 	}
 	return
@@ -61,7 +68,7 @@ func (c *Collection) run() {
 			c.lock.Lock()
 			for app_key, app := range c.apps {
 				if len(app.Connections) == 0 {
-					log.Info("clear empty", app_key)
+					log.Debug("clear empty", app_key)
 					delete(c.apps, app_key)
 				}
 			}

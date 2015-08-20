@@ -22,6 +22,7 @@ func makeTimestamp() (t int64) {
 
 func main() {
 	log.Level = logrus.DebugLevel
+	log.Formatter = &logrus.TextFormatter{ForceColors: true, FullTimestamp: true}
 	db, err := sql.Open("sqlite3", "./appdata.sqlite")
 	if err != nil {
 		log.Fatal(err)

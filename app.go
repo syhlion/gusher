@@ -32,21 +32,21 @@ func (a *App) run() {
 			a.Connections[client] = true
 		case client := <-a.Unregister:
 			if _, ok := a.Connections[client]; ok {
-				log.Info(client.ws.RemoteAddr().String(), " ", client.Tag, " disconnect")
+				//log.Debug(client.ws.RemoteAddr().String(), " ", client.Tag, " disconnect")
 				delete(a.Connections, client)
 				close(client.Send)
 			}
 			if len(a.Connections) == 0 {
-				log.Info("This Connections is 0 Break this foreach")
+				//log.Debug("This Apps empty user")
 				break
 			}
 		case message := <-a.Boradcast:
-			log.Info(a.key, " Boradcast start")
+			log.Debug(a.key, " Boradcast start")
 			for client := range a.Connections {
 				client.Send <- message
 			}
 		case ruleMsg := <-a.Assign:
-			log.Info(a.key, " Assign Start")
+			log.Debug(a.key, " Assign Start")
 			i := 0
 			//迴圈跑所有連線
 			for client := range a.Connections {

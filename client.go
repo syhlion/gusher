@@ -38,7 +38,6 @@ func (c *Client) ReadPump() {
 		c.ws.Close()
 		c.App.Unregister <- c
 	}()
-
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
@@ -75,7 +74,7 @@ func (c *Client) WritePump() {
 
 		case <-t.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " send PingMessage")
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " send PingMessage Error")
 				return
 			}
 

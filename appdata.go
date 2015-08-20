@@ -22,12 +22,12 @@ func (d *AppData) IsExist(app_key string) bool {
 	var result int
 	err := d.db.QueryRow(sql, app_key).Scan(&result)
 	if err != nil {
-		log.Debug(err)
+		log.Debug(app_key, " ", err)
 		return false
 	}
 
 	if result == 0 {
-		log.Debug("no exist")
+		log.Debug(app_key, " no exist")
 		return false
 	}
 	return true
@@ -43,7 +43,7 @@ func (d *AppData) Register(app_name string, request_ip string) (app_key string, 
 	}
 	stmt, err := tx.Prepare(cmd)
 	if err != nil {
-		log.Debug(err)
+		log.Debug(app_name, " ", request_ip, " ", err)
 		return
 	}
 	date := time.Now().Format("2006/01/02 15:04:05")
@@ -57,12 +57,12 @@ func (d *AppData) Register(app_name string, request_ip string) (app_key string, 
 	log.Info(app_key)
 	_, err = stmt.Exec(app_name, request_ip, app_key, timestamp, date)
 	if err != nil {
-		log.Debug(err)
+		log.Debug(app_name, " ", request_ip, " ", err)
 		return
 	}
 	err = tx.Commit()
 	if err != nil {
-		log.Debug(err)
+		log.Debug(app_name, " ", request_ip, " ", err)
 		return
 	}
 	defer stmt.Close()
