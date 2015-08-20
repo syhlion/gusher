@@ -68,7 +68,7 @@ func (c *Collection) run() {
 			c.lock.Lock()
 			for app_key, app := range c.apps {
 				if len(app.Connections) == 0 {
-					log.Debug("clear empty", app_key)
+					log.Debug("clear empty app", app_key)
 					delete(c.apps, app_key)
 				}
 			}
