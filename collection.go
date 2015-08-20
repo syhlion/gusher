@@ -42,8 +42,8 @@ func (c *Collection) Join(app_key string) (room *App, err error) {
 
 func (c *Collection) Get(app_key string) (room *App, err error) {
 	if !appdata.IsExist(app_key) {
-		log.Debug(app_key, " ", err)
 		err = &errorCollection{"Error app_key, Please Register App_key"}
+		log.Debug(app_key, " ", err)
 		return
 	}
 	c.lock.RLock()
@@ -51,8 +51,8 @@ func (c *Collection) Get(app_key string) (room *App, err error) {
 	if val, ok := c.apps[app_key]; ok {
 		room = val
 	} else {
-		log.Debug(app_key, " ", err)
 		err = &errorCollection{"No User In the App"}
+		log.Debug(app_key, " ", err)
 	}
 	return
 

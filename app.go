@@ -2,10 +2,12 @@ package main
 
 import (
 	"regexp"
+	"sync"
 )
 
 type App struct {
 	key               string
+	lock              *sync.RWMutex
 	Connections       map[*Client]bool
 	AssignTotalResult chan int
 	Assign            chan map[string][]byte
@@ -17,6 +19,7 @@ type App struct {
 func NewApp(app_key string) *App {
 	return &App{
 		key:               app_key,
+		lock:              new(sync.RWMutex),
 		Connections:       make(map[*Client]bool, 1024),
 		AssignTotalResult: make(chan int),
 		Assign:            make(chan map[string][]byte, 1024),
@@ -25,6 +28,18 @@ func NewApp(app_key string) *App {
 		Unregister:        make(chan *Client, 1024),
 	}
 }
+
+func (a *App) GetAllUserTag() []string {
+
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	var list []string
+	for client := range a.Connections {
+		list = append(list, client.Tag)
+	}
+	return list
+}
+
 func (a *App) run() {
 	for {
 		select {

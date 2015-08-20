@@ -12,7 +12,41 @@ func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type ListOnlineResult struct {
+	AppKey          string   `json:"app_key"`
+	TotalOnlineUser int      `json:"total_online_user"`
+	OnlineUser      []string `json:"online_user"`
+}
+
 func ListClientHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	app_key := params["app_key"]
+	if app_key == "" {
+		log.Warn(r.RemoteAddr, " app_key empty")
+		w.WriteHeader(404)
+		nr := NilResult{Message: "app_key empty"}
+		json.NewEncoder(w).Encode(nr)
+		return
+	}
+
+	app, err := collection.Get(app_key)
+
+	if err != nil {
+		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
+		nr := NilResult{Message: err.Error()}
+		w.WriteHeader(403)
+		json.NewEncoder(w).Encode(nr)
+		return
+	}
+	onlineUsers := app.GetAllUserTag()
+
+	lo := ListOnlineResult{
+		AppKey:          app_key,
+		TotalOnlineUser: len(onlineUsers),
+		OnlineUser:      onlineUsers,
+	}
+	log.Info(r.RemoteAddr, " GetAppUsers")
+	json.NewEncoder(w).Encode(lo)
 
 }
 
@@ -53,10 +87,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		RequestIP: request_ip,
 	}
 	json.NewEncoder(w).Encode(result)
-}
-
-func ListAppHandler(w http.ResponseWriter, r *http.Request) {
-
 }
 
 type PushResult struct {
