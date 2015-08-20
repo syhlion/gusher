@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"strings"
 )
 
 var upgrader = websocket.Upgrader{
@@ -13,44 +13,37 @@ var upgrader = websocket.Upgrader{
 }
 
 func WSHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Metho not allowed", 405)
-		//TODO 補log
+
+	log.Info(r.RemoteAddr, " handshake start")
+	params := mux.Vars(r)
+
+	app_key := params["app_key"]
+	user_tag := params["user_tag"]
+	if app_key == "" || user_tag == "" {
+		log.Warn(r.RemoteAddr, " app_key & user_tag empty")
 		return
 	}
 
-	keys := r.FormValue("keys")
-	if keys == "" {
-		//TODO 補log
+	//確認db 是否存在
+	if !appdata.IsExist(app_key) {
+		log.Warn(r.RemoteAddr, " ", app_key, " no exist")
 		return
 	}
 
-	keys_array := strings.SplitN(keys, ":", 2)
-	keys_total := len(keys_array)
-	if keys_total != 2 {
-		return
-	}
-	app_key := keys_array[0]
-	user_tag := keys_array[1]
-
-	//csrf
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		//TODO 補logo
+		log.Warn(r.RemoteAddr, " ", err)
 		return
 	}
 
 	//collection join
-	app, err := collection.Join(app_key)
-	if err != nil {
-		return
-	}
-
+	app := collection.Join(app_key)
 	// new client
 	client := NewClient(user_tag, ws, app)
 
 	// register client
 	app.Register <- client
-	client.WritePump()
-	//client.readPump()
+	log.Info(r.RemoteAddr, " login ", app_key, " Scuess")
+	go client.WritePump()
+	client.ReadPump()
 }

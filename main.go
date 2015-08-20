@@ -1,40 +1,50 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
+	_ "github.com/mattn/go-sqlite3"
 	"net/http"
+	"time"
 )
 
 var collection = NewCollection()
 
 var log = logrus.New()
 
-func logHttpRequestInfo(r *http.Request) {
-	log.Info()
-}
-func logHttpRequestWarn(r *http.Request) {
-	log.Warn()
-}
-func logWsInfo(c *Client) {
-	log.Info()
-}
+var appdata *AppData
 
-func logWsWarn(c *Client) {
-	log.Info()
+func makeTimestamp() (t int64) {
+	t = time.Now().UnixNano() / int64(time.Millisecond)
+	return
 }
 
 func main() {
-	// log init
+	log.Level = logrus.DebugLevel
+	db, err := sql.Open("sqlite3", "./appdata.sqlite")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
+	sqlStmt := `
+	create table if not exists appdata (app_name,request_ip,app_key PRIMARY KEY,timestamp,date)
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	appdata = NewAppData(db)
 	go collection.run()
 	r := mux.NewRouter()
 
 	// ws handshake
-	r.HandleFunc("/ws/{key}", WSHandler).Methods("GET")
+	r.HandleFunc("/ws/{app_key}/{user_tag}", WSHandler).Methods("GET")
 
 	//push message api
-	r.HandleFunc("/push/{key}", PushHandler).Methods("POST")
+	r.HandleFunc("/push/{app_key}", PushHandler).Methods("POST")
 
 	//register user
 	r.HandleFunc("/register", RegisterHandler).Methods("POST")
@@ -47,5 +57,5 @@ func main() {
 
 	r.HandleFunc("/listapp", ListAppHandler).Methods("GET")
 	log.Info("Server Start")
-	http.ListenAndServe(":8001", r)
+	log.Fatal(http.ListenAndServe(":8001", r))
 }

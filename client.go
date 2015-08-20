@@ -33,8 +33,7 @@ func (c *Client) write(msgType int, msg []byte) error {
 	return c.ws.WriteMessage(msgType, msg)
 }
 
-/* 暫時用不到的功能
-func (c *Client) readPump() {
+func (c *Client) ReadPump() {
 	defer func() {
 		c.ws.Close()
 		c.App.Unregister <- c
@@ -44,18 +43,19 @@ func (c *Client) readPump() {
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, msg, err := c.ws.ReadMessage()
+		_, _, err := c.ws.ReadMessage()
 		if err != nil {
 			return
 		}
-		c.Send <- msg
+		//暫時不實做推送到 送出頻道 目前是 readonly
+		//c.Send <- msg
 	}
 
 }
-*/
 func (c *Client) WritePump() {
 	t := time.NewTicker(pingPeriod)
 	defer func() {
+		log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " dissconect")
 		c.ws.Close()
 		c.App.Unregister <- c
 		t.Stop()
@@ -65,14 +65,17 @@ func (c *Client) WritePump() {
 		case msg, ok := <-c.Send:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Channel Error")
 				return
 			}
-			if err := c.ws.WriteMessage(websocket.TextMessage, msg); err != nil {
+			if err := c.write(websocket.TextMessage, msg); err != nil {
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Message Error", err)
 				return
 			}
 
 		case <-t.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " send PingMessage")
 				return
 			}
 

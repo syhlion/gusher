@@ -21,34 +21,31 @@ func NewCollection() *Collection {
 	return &Collection{new(sync.RWMutex), make(map[string]*App)}
 }
 
-func (c *Collection) Join(app_key string) (room *App, err error) {
+func (c *Collection) Join(app_key string) (room *App) {
 
-	//app_key := keys[0]
-	//user_token := keys[1]
-	//DB驗證在這邊驗證尚未實作
-
-	//DB 驗證結束
-	if app_key != "test" {
-		return nil, &errorCollection{"empty"}
-	}
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if _, ok := c.apps[app_key]; !ok {
 		c.apps[app_key] = NewApp(app_key)
 		go c.apps[app_key].run()
 	}
+	log.Info("Join ", app_key)
 	room = c.apps[app_key]
 
 	return
 }
 
-func (c *Collection) Get(id string) (room *App, err error) {
+func (c *Collection) Get(app_key string) (room *App, err error) {
+	if !appdata.IsExist(app_key) {
+		err = &errorCollection{"Error app_key, Please Register App_key"}
+		return
+	}
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	if val, ok := c.apps[id]; ok {
+	if val, ok := c.apps[app_key]; ok {
 		room = val
 	} else {
-		err = &errorCollection{"no colleciotn"}
+		err = &errorCollection{"No User In the App"}
 	}
 	return
 
@@ -62,9 +59,10 @@ func (c *Collection) run() {
 		select {
 		case <-ticker.C:
 			c.lock.Lock()
-			for id, room := range c.apps {
-				if len(room.Connections) == 0 {
-					delete(c.apps, id)
+			for app_key, app := range c.apps {
+				if len(app.Connections) == 0 {
+					log.Info("clear empty", app_key)
+					delete(c.apps, app_key)
 				}
 			}
 			c.lock.Unlock()

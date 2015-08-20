@@ -5,22 +5,24 @@ import (
 )
 
 type App struct {
-	id          string
-	Connections map[*Client]bool
-	Assign      chan map[string][]byte
-	Boradcast   chan []byte
-	Register    chan *Client
-	Unregister  chan *Client
+	key               string
+	Connections       map[*Client]bool
+	AssignTotalResult chan int
+	Assign            chan map[string][]byte
+	Boradcast         chan []byte
+	Register          chan *Client
+	Unregister        chan *Client
 }
 
-func NewApp(id string) *App {
+func NewApp(app_key string) *App {
 	return &App{
-		id,
-		make(map[*Client]bool, 1024),
-		make(chan map[string][]byte, 1024),
-		make(chan []byte, 1024),
-		make(chan *Client, 1024),
-		make(chan *Client, 1024),
+		key:               app_key,
+		Connections:       make(map[*Client]bool, 1024),
+		AssignTotalResult: make(chan int),
+		Assign:            make(chan map[string][]byte, 1024),
+		Boradcast:         make(chan []byte, 1024),
+		Register:          make(chan *Client, 1024),
+		Unregister:        make(chan *Client, 1024),
 	}
 }
 func (a *App) run() {
@@ -30,18 +32,22 @@ func (a *App) run() {
 			a.Connections[client] = true
 		case client := <-a.Unregister:
 			if _, ok := a.Connections[client]; ok {
+				log.Info(client.ws.RemoteAddr().String(), " ", client.Tag, " disconnect")
 				delete(a.Connections, client)
 				close(client.Send)
 			}
 			if len(a.Connections) == 0 {
+				log.Info("This Connections is 0 Break this foreach")
 				break
 			}
 		case message := <-a.Boradcast:
+			log.Info(a.key, " Boradcast start")
 			for client := range a.Connections {
 				client.Send <- message
 			}
 		case ruleMsg := <-a.Assign:
-
+			log.Info(a.key, " Assign Start")
+			i := 0
 			//迴圈跑所有連線
 			for client := range a.Connections {
 
@@ -53,10 +59,12 @@ func (a *App) run() {
 						if vailed.MatchString(client.Tag) {
 
 							client.Send <- message
+							i++
 						}
 					}
 				}
 			}
+			a.AssignTotalResult <- i
 		}
 	}
 	defer func() {
