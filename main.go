@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	APP_VER = "0.2.0"
+	APP_VER = "0.2.1"
 )
 
 var collection = NewCollection()
@@ -64,17 +64,17 @@ func main() {
 	gusher := cli.NewApp()
 	gusher.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "addr",
+			Name:  "addr, a",
 			Value: ":8001",
 			Usage: "Input like 127.0.0.1:8001 or :8011",
 		},
 		cli.StringFlag{
-			Name:  "env",
+			Name:  "env, e",
 			Value: "PRODUCTION",
 			Usage: "PRODUCTION | DEVELOPMENT | DEBUG",
 		},
 		cli.StringFlag{
-			Name:  "log",
+			Name:  "log, l",
 			Value: "console",
 			Usage: "Input like /home/user/gusher.log | console",
 		},
