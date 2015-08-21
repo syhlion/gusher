@@ -32,6 +32,55 @@ func (d *AppData) IsExist(app_key string) bool {
 
 }
 
+func (d *AppData) Delete(app_key string) (err error) {
+	sql := "DELETE FROM `appdata` where app_key = ?"
+
+	tx, err := d.db.Begin()
+	if err != nil {
+		log.Debug(err)
+		return
+	}
+	stmt, err := tx.Prepare(sql)
+	if err != nil {
+		log.Debug(app_key, " ", err)
+		return
+	}
+
+	_, err = stmt.Exec(app_key)
+	if err != nil {
+		log.Debug(app_key, " ", err)
+		return
+	}
+	err = tx.Commit()
+	if err != nil {
+		log.Debug(app_key, " ", err)
+		return
+	}
+	return
+
+}
+
+func (d *AppData) GetAll() (r []AppDataResult, err error) {
+
+	sql := "SELECT * FROM `appdata`"
+	rows, err := d.db.Query(sql)
+	if err != nil {
+		log.Debug(err)
+		return
+	}
+	var apps AppDataResult
+	for rows.Next() {
+		err = rows.Scan(&apps.AppName, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
+		if err != nil {
+			log.Debug(err)
+			return
+		}
+		r = append(r, apps)
+	}
+	return
+
+}
+
 func (d *AppData) Register(app_name string, request_ip string) (app_key string, err error) {
 	cmd := "INSERT INTO appdata(app_name,request_ip,app_key,timestamp,date) VALUES (?,?,?,?,?)"
 	tx, err := d.db.Begin()

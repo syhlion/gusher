@@ -17,7 +17,10 @@ func Router() (router *mux.Router) {
 	router.HandleFunc("/api/register", RegisterHandler).Methods("POST")
 
 	//unregister
-	//router.HandleFunc("/unregister", UnregisterHandler).Methods("POST")
+	router.HandleFunc("/api/{app_key}/unregister", UnregisterHandler).Methods("DELETE")
+
+	//list app
+	router.HandleFunc("/api/app-list", AppListHandler).Methods("GET")
 
 	//list how many client
 	router.HandleFunc("/api/{app_key}/listonlineuser", ListClientHandler).Methods("GET")

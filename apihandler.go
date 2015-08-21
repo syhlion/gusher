@@ -6,10 +6,53 @@ import (
 	"net/http"
 )
 
-func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "POST" {
+type AppDataResult struct {
+	AppKey    string `json:"app_key"`
+	AppName   string `json:"app_name"`
+	RequestIP string `json:"request_ip"`
+	Date      string `json:"date"`
+	Timestamp string `json:"timestamp"`
+}
 
+func AppListHandler(w http.ResponseWriter, r *http.Request) {
+	rs, err := appdata.GetAll()
+	if err != nil {
+		log.Error(err)
+		nr := NilResult{Message: err.Error()}
+		w.WriteHeader(500)
+		json.NewEncoder(w).Encode(nr)
+		return
 	}
+	log.Info(rs)
+
+	log.Info(r.RemoteAddr, "ListApp Scuess")
+	json.NewEncoder(w).Encode(rs)
+
+}
+
+func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	app_key := params["app_key"]
+	if app_key == "" {
+		log.Warn(r.RemoteAddr, " app_key empty")
+		w.WriteHeader(404)
+		nr := NilResult{Message: "app_key empty"}
+		json.NewEncoder(w).Encode(nr)
+		return
+	}
+	err := appdata.Delete(app_key)
+	if err != nil {
+
+		log.Warn(r.RemoteAddr, " ", err)
+		w.WriteHeader(500)
+		nr := NilResult{Message: err.Error()}
+		json.NewEncoder(w).Encode(nr)
+		return
+	}
+	nr := NilResult{Message: "Scuess"}
+	log.Info(r.RemoteAddr, " ", app_key, " Unregister Scuess")
+	json.NewEncoder(w).Encode(nr)
+
 }
 
 type ListOnlineResult struct {

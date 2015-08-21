@@ -46,9 +46,41 @@ app_name | string | a app_name
 {
     "app_name":"test",
     "app_key":"abcdefghijklmnop",
-    "request_ip":"127.0.0.1"
+    "request_ip":"127.0.0.1:77777"
 }
 ```
+
+#### Unregitser:  
+
+`[DELETE] /api/{app_key}/unregister`  
+
+* 200 status Response:
+
+```
+{
+    "message":"Scuess"
+}
+```
+
+
+#### List All App:  
+
+`[GET] /api/app-list`  
+
+* 200 status Response:
+
+```
+[
+    {
+        "app_key":"abcdefghijklmnop",
+        "app_name":"test",
+        "request_ip":"127.0.0.1:77777",
+        "date":"2015/08/04 11:22:33",
+        "timestamp":"1440149593490"
+    }
+]
+```
+
 
 #### Push:  
 
@@ -92,6 +124,9 @@ user_tag | string | the message who will receive. OPTION
 
 
 #### All Error Response:
+
+* 4xx & 5xx status Response:  
+
 ```
 {
     "message":"error message"
