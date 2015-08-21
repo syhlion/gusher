@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
 	"os"
@@ -15,6 +14,7 @@ const (
 	APP_VER = "0.2.1"
 )
 
+// 管理每個 app的集合初始化
 var collection = NewCollection()
 
 var log = logrus.New()
@@ -44,22 +44,7 @@ func main() {
 
 	appdata = NewAppData(db)
 	go collection.run()
-	r := mux.NewRouter()
-
-	// ws handshake
-	r.HandleFunc("/ws/{app_key}/{user_tag}", WSHandler).Methods("GET")
-
-	//push message api
-	r.HandleFunc("/push/{app_key}", PushHandler).Methods("POST")
-
-	//register user
-	r.HandleFunc("/register", RegisterHandler).Methods("POST")
-
-	//unregister
-	r.HandleFunc("/unregister", UnregisterHandler).Methods("POST")
-
-	//list how many client
-	r.HandleFunc("/{app_key}/listonlineuser", ListClientHandler).Methods("GET")
+	r := Router()
 
 	gusher := cli.NewApp()
 	gusher.Flags = []cli.Flag{
