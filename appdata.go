@@ -1,10 +1,8 @@
 package main
 
 import (
-	"crypto/md5"
 	"database/sql"
-	"fmt"
-	"strconv"
+	"github.com/syhlion/go-common"
 	"strings"
 	"time"
 )
@@ -47,15 +45,13 @@ func (d *AppData) Register(app_name string, request_ip string) (app_key string, 
 		return
 	}
 	date := time.Now().Format("2006/01/02 15:04:05")
-	timestamp := makeTimestamp()
 
-	seeds := []string{app_name, request_ip, strconv.FormatInt(timestamp, 10), date}
+	seeds := []string{app_name, request_ip, common.TimeToString(), date}
 	seed := strings.Join(seeds, ",")
-	b := []byte(seed)
-	app_key = fmt.Sprintf("%x", md5.Sum(b))
+	app_key = common.EncodeMd5(seed)
 
 	log.Info(app_key)
-	_, err = stmt.Exec(app_name, request_ip, app_key, timestamp, date)
+	_, err = stmt.Exec(app_name, request_ip, app_key, common.Time(), date)
 	if err != nil {
 		log.Debug(app_name, " ", request_ip, " ", err)
 		return
