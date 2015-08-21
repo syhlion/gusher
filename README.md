@@ -91,7 +91,7 @@ app_name | string | a app_name
 Name|Type|Dircetions
 ---|---|---
 content| string | the message you send
-user_tag | string | the message who will receive. OPTION
+user_tag | string | the message who will receive. Support Regex. OPTION
 
 * 200 status Response:  
 
