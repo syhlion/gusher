@@ -13,7 +13,7 @@ Install from source
 
 ```
 $ go get github.com/syhlion/gopusher
-$ ./gopusher -h
+$ gopusher -h
 
 ```
 
@@ -30,7 +30,7 @@ Param | Type | Default|Dircetions
 
 ## API
 
-#### Regitser:
+#### Register:
 
 `[POST] /api/register`  
 
@@ -50,7 +50,7 @@ app_name | string | a app_name
 }
 ```
 
-#### Unregitser:  
+#### Unregister:  
 
 `[DELETE] /api/{app_key}/unregister`  
 
