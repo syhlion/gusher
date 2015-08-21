@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	APP_VER = "0.2.3"
+	APP_VER = "0.2.4"
 )
 
 // 管理每個 app的集合初始化
