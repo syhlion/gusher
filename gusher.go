@@ -5,10 +5,11 @@ import (
 	"github.com/codegangsta/cli"
 	"net/http"
 	"os"
+	"runtime"
 )
 
 const (
-	APP_VER = "0.2.2"
+	APP_VER = "0.2.3"
 )
 
 // 管理每個 app的集合初始化
@@ -20,7 +21,7 @@ var log = logrus.New()
 
 var appdata *AppData
 
-//初始化執行動作
+//Server執行動作
 func Start(c *cli.Context) {
 
 	log.Formatter = logformat
@@ -52,6 +53,9 @@ func Start(c *cli.Context) {
 	log.Level = env
 	log.Info("Server Start ", c.String("addr"))
 	log.Fatal(http.ListenAndServe(c.String("addr"), r))
+}
+func init() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
 //進入點
