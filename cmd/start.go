@@ -4,6 +4,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/syhlion/gopusher/core"
+	"github.com/syhlion/gopusher/init"
 	"github.com/syhlion/gopusher/module/log"
 	"github.com/syhlion/gopusher/router"
 	"net/http"
@@ -17,19 +18,9 @@ var CmdStart = cli.Command{
 	Action:      start,
 	Flags: []cli.Flag{
 		cli.StringFlag{
-			Name:  "addr, a",
-			Value: ":8001",
-			Usage: "Input like 127.0.0.1:8001 or :8011",
-		},
-		cli.StringFlag{
-			Name:  "env, e",
-			Value: "PRODUCTION",
-			Usage: "PRODUCTION | DEVELOPMENT | DEBUG",
-		},
-		cli.StringFlag{
-			Name:  "log, l",
-			Value: "console",
-			Usage: "Input like /home/user/gusher.log | console",
+			Name:  "conf, c",
+			Value: "./default.json",
+			Usage: "Input default.json",
 		},
 	},
 }
@@ -44,25 +35,32 @@ func start(c *cli.Context) {
 
 	go collection.Run()
 	r := router.Router()
+	conf := init.GetConfig(c.String("conf"))
+	err := init.DBinit()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	env := func() logrus.Level {
-		switch c.String("env") {
+		switch conf.Environment {
 		case "PRODUCTION":
-			return logrus.InfoLevel
+			return logrus.WarnLevel
 			break
 		case "DEVELOPMENT":
 			return logrus.InfoLevel
+			break
 		case "DEBUG":
 			return logrus.DebugLevel
+			break
 		}
-		return logrus.WarnLevel
+		return logrus.InfoLevel
 	}()
-	if c.String("log") != "console" {
+	if conf.LogDir != "console" {
 		if file, err := os.OpenFile(c.String("log"), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
 			log.Logger.Out = file
 		}
 	}
 	log.Logger.Level = env
-	log.Logger.Info("Server Start ", c.String("addr"))
-	log.Logger.Fatal(http.ListenAndServe(c.String("addr"), r))
+	log.Logger.Info("Server Start ", conf.Listen)
+	log.Logger.Fatal(http.ListenAndServe(conf.Listen, r))
 }

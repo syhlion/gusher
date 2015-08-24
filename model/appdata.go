@@ -10,20 +10,8 @@ import (
 )
 
 var (
-	AppData *appData = nil
+	appData *AppData = nil
 )
-
-func init() {
-	if AppData == nil {
-
-		db, err := sql.Open("sqlite3", "./appdata.sqlite")
-		if err != nil {
-			log.Logger.Error(err)
-			return
-		}
-		AppData = newAppData(db)
-	}
-}
 
 type AppDataResult struct {
 	AppKey       string `json:"app_key"`
@@ -34,18 +22,23 @@ type AppDataResult struct {
 	Date         string `json:"date"`
 	Timestamp    string `json:"timestamp"`
 }
-type appData struct {
-	db *sql.DB
+type AppData struct {
+	sqlDir string
 }
 
-func newAppData(db *sql.DB) *appData {
-	return &appData{db}
+func NewAppData(sqlDir string) *AppData {
+	return &AppData{sqlDir}
 }
 
-func (d *appData) IsExist(app_key string) bool {
+func (d *AppData) IsExist(app_key string) bool {
+	db, err := sql.Open("sqlite3", d.sqlDir)
+	defer db.Close()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	sql := "SELECT EXISTS(SELECT 1  FROM  `appdata` WHERE `app_key`= $1)"
 	var result int
-	err := d.db.QueryRow(sql, app_key).Scan(&result)
+	err = db.QueryRow(sql, app_key).Scan(&result)
 	if err != nil {
 		log.Logger.Debug(app_key, " ", err)
 		return false
@@ -59,10 +52,16 @@ func (d *appData) IsExist(app_key string) bool {
 
 }
 
-func (d *appData) Delete(app_key string) (err error) {
+func (d *AppData) Delete(app_key string) (err error) {
+	db, err := sql.Open("sqlite3", d.sqlDir)
+	defer db.Close()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
+
 	sql := "DELETE FROM `appdata` where app_key = ?"
 
-	tx, err := d.db.Begin()
+	tx, err := db.Begin()
 	if err != nil {
 		log.Logger.Debug(err)
 		return
@@ -87,10 +86,15 @@ func (d *appData) Delete(app_key string) (err error) {
 
 }
 
-func (d *appData) Get(app_key string) (r AppDataResult, err error) {
+func (d *AppData) Get(app_key string) (r AppDataResult, err error) {
 
+	db, err := sql.Open("sqlite3", d.sqlDir)
+	defer db.Close()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	sql := "SELECT * FROM `appdata` WHERE app_key = ?"
-	rows, err := d.db.Query(sql)
+	rows, err := db.Query(sql)
 	if err != nil {
 		log.Logger.Debug(err)
 		return
@@ -105,10 +109,15 @@ func (d *appData) Get(app_key string) (r AppDataResult, err error) {
 	return
 }
 
-func (d *appData) GetAll() (r []AppDataResult, err error) {
+func (d *AppData) GetAll() (r []AppDataResult, err error) {
 
+	db, err := sql.Open("sqlite3", d.sqlDir)
+	defer db.Close()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	sql := "SELECT * FROM `appdata`"
-	rows, err := d.db.Query(sql)
+	rows, err := db.Query(sql)
 	if err != nil {
 		log.Logger.Debug(err)
 		return
@@ -126,9 +135,14 @@ func (d *appData) GetAll() (r []AppDataResult, err error) {
 
 }
 
-func (d *appData) Register(app_name string, auth_account string, auth_password string, request_ip string) (app_key string, err error) {
+func (d *AppData) Register(app_name string, auth_account string, auth_password string, request_ip string) (app_key string, err error) {
+	db, err := sql.Open("sqlite3", d.sqlDir)
+	defer db.Close()
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	cmd := "INSERT INTO appdata(app_name,auth_account,auth_password,request_ip,app_key,timestamp,date) VALUES (?,?,?,?,?,?,?)"
-	tx, err := d.db.Begin()
+	tx, err := db.Begin()
 	if err != nil {
 		log.Logger.Debug(err)
 		return
