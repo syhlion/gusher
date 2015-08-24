@@ -13,7 +13,7 @@ func DBinit() (db *sql.DB, err error) {
 	}
 
 	sqlStmt := `
-	create table if not exists appdata (app_name,request_ip,app_key PRIMARY KEY,timestamp,date)
+	create table if not exists appdata (app_name,request_ip,app_key PRIMARY KEY,auth_account,auth_password,timestamp,date)
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {

@@ -7,11 +7,13 @@ import (
 )
 
 type AppDataResult struct {
-	AppKey    string `json:"app_key"`
-	AppName   string `json:"app_name"`
-	RequestIP string `json:"request_ip"`
-	Date      string `json:"date"`
-	Timestamp string `json:"timestamp"`
+	AppKey       string `json:"app_key"`
+	AppName      string `json:"app_name"`
+	AuthAccount  string `json:"auth_account"`
+	AuthPassword string `json:"auth_password"`
+	RequestIP    string `json:"request_ip"`
+	Date         string `json:"date"`
+	Timestamp    string `json:"timestamp"`
 }
 
 func AppListHandler(w http.ResponseWriter, r *http.Request) {
@@ -94,14 +96,16 @@ type AppResult struct {
 //註冊
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	app_name := r.FormValue("app_name")
+	auth_password := r.FormValue("auth_password")
+	auth_account := r.FormValue("auth_account")
 	request_ip := r.RemoteAddr
 
-	if app_name == "" || request_ip == "" {
+	if app_name == "" || request_ip == "" || auth_password == "" || auth_account == "" {
 		log.Warn(r.RemoteAddr, " ", "app_name || request_ip empty")
 		http.Error(w, "app_name || request_op empty", 404)
 		return
 	}
-	app_key, err := appdata.Register(app_name, request_ip)
+	app_key, err := appdata.Register(app_name, auth_account, auth_password, request_ip)
 
 	if err != nil {
 		log.Warn(r.RemoteAddr, " ", err)
