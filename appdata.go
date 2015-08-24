@@ -60,6 +60,24 @@ func (d *AppData) Delete(app_key string) (err error) {
 
 }
 
+func (d *AppData) Get(app_key string) (r AppDataResult, err error) {
+
+	sql := "SELECT * FROM `appdata` WHERE app_key = ?"
+	rows, err := d.db.Query(sql)
+	if err != nil {
+		log.Debug(err)
+		return
+	}
+	for rows.Next() {
+		err = rows.Scan(&r.AppName, &r.AuthAccount, &r.AuthPassword, &r.RequestIP, &r.AppKey, &r.Timestamp, &r.Date)
+		if err != nil {
+			log.Debug(err)
+			return
+		}
+	}
+	return
+}
+
 func (d *AppData) GetAll() (r []AppDataResult, err error) {
 
 	sql := "SELECT * FROM `appdata`"
