@@ -123,12 +123,4 @@ user_tag | string | the message who will receive. Support Regex. OPTION
 `[GET] ws://localhost/ws/{app_key}/{user_tag}`
 
 
-#### All Error Response:
 
-* 4xx & 5xx status Response:  
-
-```
-{
-    "message":"error message"
-}
-```

@@ -18,14 +18,10 @@ func AppListHandler(w http.ResponseWriter, r *http.Request) {
 	rs, err := appdata.GetAll()
 	if err != nil {
 		log.Error(err)
-		nr := NilResult{Message: err.Error()}
-		w.WriteHeader(500)
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, err.Error(), 500)
 		return
 	}
-	log.Info(rs)
-
-	log.Info(r.RemoteAddr, "ListApp Scuess")
+	log.Info(r.RemoteAddr, " ListApp Scuess")
 	json.NewEncoder(w).Encode(rs)
 
 }
@@ -35,21 +31,17 @@ func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
 	app_key := params["app_key"]
 	if app_key == "" {
 		log.Warn(r.RemoteAddr, " app_key empty")
-		w.WriteHeader(404)
-		nr := NilResult{Message: "app_key empty"}
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, "app_key empty", 404)
 		return
 	}
 	err := appdata.Delete(app_key)
 	if err != nil {
 
 		log.Warn(r.RemoteAddr, " ", err)
-		w.WriteHeader(500)
-		nr := NilResult{Message: err.Error()}
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, err.Error(), 500)
 		return
 	}
-	nr := NilResult{Message: "Scuess"}
+	nr := NormalResult{Message: "Scuess"}
 	log.Info(r.RemoteAddr, " ", app_key, " Unregister Scuess")
 	json.NewEncoder(w).Encode(nr)
 
@@ -66,9 +58,7 @@ func ListClientHandler(w http.ResponseWriter, r *http.Request) {
 	app_key := params["app_key"]
 	if app_key == "" {
 		log.Warn(r.RemoteAddr, " app_key empty")
-		w.WriteHeader(404)
-		nr := NilResult{Message: "app_key empty"}
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, "app_key empty", 404)
 		return
 	}
 
@@ -76,9 +66,7 @@ func ListClientHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
-		nr := NilResult{Message: err.Error()}
-		w.WriteHeader(403)
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, err.Error(), 403)
 		return
 	}
 	onlineUsers := app.GetAllUserTag()
@@ -93,7 +81,7 @@ func ListClientHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type NilResult struct {
+type NormalResult struct {
 	Message string `json:"message"`
 }
 
@@ -110,17 +98,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	if app_name == "" || request_ip == "" {
 		log.Warn(r.RemoteAddr, " ", "app_name || request_ip empty")
-		w.WriteHeader(404)
-		result := NilResult{Message: "app_name || request_ip empty"}
-		json.NewEncoder(w).Encode(result)
+		http.Error(w, "app_name || request_op empty", 404)
 		return
 	}
 	app_key, err := appdata.Register(app_name, request_ip)
 
 	if err != nil {
 		log.Warn(r.RemoteAddr, " ", err)
-		result := NilResult{Message: "Insert Error"}
-		json.NewEncoder(w).Encode(result)
+		http.Error(w, "Insert Error", 500)
 		return
 	}
 
@@ -150,19 +135,15 @@ func PushHandler(w http.ResponseWriter, r *http.Request) {
 	user_tag := r.FormValue("user_tag")
 
 	if app_key == "" || content == "" {
-		nr := NilResult{Message: "app_key || content empty"}
-		w.WriteHeader(400)
 		log.Warn(r.RemoteAddr, " empty app_key || content")
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, "app_key || content empty", 400)
 		return
 	}
 
 	app, err := collection.Get(app_key)
 	if err != nil {
-		nr := NilResult{Message: err.Error()}
 		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
-		w.WriteHeader(403)
-		json.NewEncoder(w).Encode(nr)
+		http.Error(w, err.Error(), 403)
 		return
 	}
 	totalResult := 0
