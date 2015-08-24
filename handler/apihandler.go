@@ -1,29 +1,22 @@
-package main
+package handler
 
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/syhlion/gopusher/core"
+	"github.com/syhlion/gopusher/model"
+	"github.com/syhlion/gopusher/module/log"
 	"net/http"
 )
 
-type AppDataResult struct {
-	AppKey       string `json:"app_key"`
-	AppName      string `json:"app_name"`
-	AuthAccount  string `json:"auth_account"`
-	AuthPassword string `json:"auth_password"`
-	RequestIP    string `json:"request_ip"`
-	Date         string `json:"date"`
-	Timestamp    string `json:"timestamp"`
-}
-
 func AppListHandler(w http.ResponseWriter, r *http.Request) {
-	rs, err := appdata.GetAll()
+	rs, err := model.AppData.GetAll()
 	if err != nil {
-		log.Error(err)
+		log.Logger.Error(err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	log.Info(r.RemoteAddr, " ListApp Scuess")
+	log.Logger.Info(r.RemoteAddr, " ListApp Scuess")
 	json.NewEncoder(w).Encode(rs)
 
 }
@@ -32,19 +25,19 @@ func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
 	if app_key == "" {
-		log.Warn(r.RemoteAddr, " app_key empty")
+		//log.Warn(r.RemoteAddr, " app_key empty")
 		http.Error(w, "app_key empty", 404)
 		return
 	}
-	err := appdata.Delete(app_key)
+	err := model.AppData.Delete(app_key)
 	if err != nil {
 
-		log.Warn(r.RemoteAddr, " ", err)
+		log.Logger.Warn(r.RemoteAddr, " ", err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
 	nr := NormalResult{Message: "Scuess"}
-	log.Info(r.RemoteAddr, " ", app_key, " Unregister Scuess")
+	log.Logger.Info(r.RemoteAddr, " ", app_key, " Unregister Scuess")
 	json.NewEncoder(w).Encode(nr)
 
 }
@@ -59,15 +52,15 @@ func ListClientHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
 	if app_key == "" {
-		log.Warn(r.RemoteAddr, " app_key empty")
+		//log.Warn(r.RemoteAddr, " app_key empty")
 		http.Error(w, "app_key empty", 404)
 		return
 	}
 
-	app, err := collection.Get(app_key)
+	app, err := core.Collection.Get(app_key)
 
 	if err != nil {
-		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
+		//log.Warn(r.RemoteAddr, " ", app_key, " ", err)
 		http.Error(w, err.Error(), 403)
 		return
 	}
@@ -78,7 +71,7 @@ func ListClientHandler(w http.ResponseWriter, r *http.Request) {
 		TotalOnlineUser: len(onlineUsers),
 		OnlineUser:      onlineUsers,
 	}
-	log.Info(r.RemoteAddr, " GetAppUsers")
+	log.Logger.Info(r.RemoteAddr, " GetAppUsers")
 	json.NewEncoder(w).Encode(lo)
 
 }
@@ -101,14 +94,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	request_ip := r.RemoteAddr
 
 	if app_name == "" || request_ip == "" || auth_password == "" || auth_account == "" {
-		log.Warn(r.RemoteAddr, " ", "app_name || request_ip empty")
+		log.Logger.Warn(r.RemoteAddr, " ", "app_name || request_ip empty")
 		http.Error(w, "app_name || request_op empty", 404)
 		return
 	}
-	app_key, err := appdata.Register(app_name, auth_account, auth_password, request_ip)
+	app_key, err := model.AppData.Register(app_name, auth_account, auth_password, request_ip)
 
 	if err != nil {
-		log.Warn(r.RemoteAddr, " ", err)
+		log.Logger.Warn(r.RemoteAddr, " ", err)
 		http.Error(w, "Insert Error", 500)
 		return
 	}
@@ -139,14 +132,14 @@ func PushHandler(w http.ResponseWriter, r *http.Request) {
 	user_tag := r.FormValue("user_tag")
 
 	if app_key == "" || content == "" {
-		log.Warn(r.RemoteAddr, " empty app_key || content")
+		log.Logger.Warn(r.RemoteAddr, " empty app_key || content")
 		http.Error(w, "app_key || content empty", 400)
 		return
 	}
 
-	app, err := collection.Get(app_key)
+	app, err := core.Collection.Get(app_key)
 	if err != nil {
-		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
+		log.Logger.Warn(r.RemoteAddr, " ", app_key, " ", err)
 		http.Error(w, err.Error(), 403)
 		return
 	}
@@ -169,6 +162,6 @@ func PushHandler(w http.ResponseWriter, r *http.Request) {
 		Total:   totalResult,
 	}
 
-	log.Info(r.RemoteAddr, " message send ", content)
+	log.Logger.Info(r.RemoteAddr, " message send ", content)
 	json.NewEncoder(w).Encode(pushResult)
 }

@@ -1,8 +1,10 @@
-package main
+package handler
 
 import (
 	"encoding/base64"
 	"github.com/gorilla/mux"
+	"github.com/syhlion/gopusher/model"
+	"github.com/syhlion/gopusher/module/log"
 	"net/http"
 	"strings"
 )
@@ -22,7 +24,7 @@ func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("WWW-Authenicate", `Basic realm="Restricted`)
 		s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 		if len(s) != 2 {
-			log.Warn(r.RemoteAddr, "auth Error")
+			log.Logger.Warn(r.RemoteAddr, "auth Error")
 			http.Error(w, "Not authorized", 401)
 			return
 		}
@@ -34,7 +36,7 @@ func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		}
 		pair := strings.SplitN(string(b), ":", 2)
 		if len(pair) != 2 {
-			log.Warn(r.RemoteAddr, " auth param empty")
+			log.Logger.Warn(r.RemoteAddr, " auth param empty")
 			http.Error(w, "Not authorized", 401)
 			return
 		}
@@ -46,9 +48,9 @@ func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		if params["app_key"] == "" {
 
 		} else {
-			data, err := appdata.Get(params["app_key"])
+			data, err := model.AppData.Get(params["app_key"])
 			if err != nil {
-				log.Warn(r.RemoteAddr, " ", err.Error())
+				log.Logger.Warn(r.RemoteAddr, " ", err.Error())
 				http.Error(w, err.Error(), 401)
 				return
 			}
@@ -57,7 +59,7 @@ func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if pair[0] != account || pair[1] != password {
-			log.Warn(r.RemoteAddr, " auth error "+pair[0]+" "+pair[1])
+			log.Logger.Warn(r.RemoteAddr, " auth error "+pair[0]+" "+pair[1])
 			http.Error(w, "Not authorized", 401)
 			return
 		}

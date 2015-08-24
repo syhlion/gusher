@@ -1,7 +1,8 @@
-package main
+package core
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/syhlion/gopusher/module/log"
 	"time"
 )
 
@@ -54,7 +55,7 @@ func (c *Client) ReadPump() {
 func (c *Client) WritePump() {
 	t := time.NewTicker(pingPeriod)
 	defer func() {
-		log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " dissconect")
+		log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " dissconect")
 		c.ws.Close()
 		c.App.Unregister <- c
 		t.Stop()
@@ -64,17 +65,17 @@ func (c *Client) WritePump() {
 		case msg, ok := <-c.Send:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Channel Error")
+				log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Channel Error")
 				return
 			}
 			if err := c.write(websocket.TextMessage, msg); err != nil {
-				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Message Error", err)
+				log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Message Error", err)
 				return
 			}
 
 		case <-t.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " send PingMessage Error")
+				log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " send PingMessage Error")
 				return
 			}
 

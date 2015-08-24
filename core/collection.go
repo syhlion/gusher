@@ -1,11 +1,23 @@
-package main
+package core
 
 import (
+	"github.com/syhlion/gopusher/model"
+	"github.com/syhlion/gopusher/module/log"
 	"sync"
 	"time"
 )
 
-type Collection struct {
+var (
+	Collection *collection = nil
+)
+
+func init() {
+	if Collection == nil {
+		Collection = newCollection()
+	}
+}
+
+type collection struct {
 	lock *sync.RWMutex
 	apps map[string]*App
 }
@@ -17,33 +29,31 @@ type errorCollection struct {
 func (e *errorCollection) Error() string {
 	return e.s
 }
-func NewCollection() *Collection {
-	return &Collection{new(sync.RWMutex), make(map[string]*App)}
+func newCollection() *collection {
+	return &collection{new(sync.RWMutex), make(map[string]*App)}
 }
 
-func (c *Collection) Join(app_key string) (room *App, err error) {
-
-	if !appdata.IsExist(app_key) {
+func (c *collection) Join(app_key string) (room *App, err error) {
+	if !model.AppData.IsExist(app_key) {
 		err = &errorCollection{"app_key no exist"}
 		return
 	}
-
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	if _, ok := c.apps[app_key]; !ok {
 		c.apps[app_key] = NewApp(app_key)
 		go c.apps[app_key].run()
 	}
-	log.Debug("Join ", app_key)
+	log.Logger.Debug("Join ", app_key)
 	room = c.apps[app_key]
 
 	return
 }
 
-func (c *Collection) Get(app_key string) (room *App, err error) {
-	if !appdata.IsExist(app_key) {
+func (c *collection) Get(app_key string) (room *App, err error) {
+	if !model.AppData.IsExist(app_key) {
 		err = &errorCollection{"Error app_key, Please Register App_key"}
-		log.Debug(app_key, " ", err)
+		log.Logger.Debug(app_key, " ", err)
 		return
 	}
 	c.lock.RLock()
@@ -52,14 +62,14 @@ func (c *Collection) Get(app_key string) (room *App, err error) {
 		room = val
 	} else {
 		err = &errorCollection{"No User In the App"}
-		log.Debug(app_key, " ", err)
+		log.Logger.Debug(app_key, " ", err)
 	}
 	return
 
 }
 
 //定時掃除空的app集合
-func (c *Collection) run() {
+func (c *collection) Run() {
 
 	ticker := time.NewTicker(10 * time.Minute)
 	for {
@@ -68,7 +78,7 @@ func (c *Collection) run() {
 			c.lock.Lock()
 			for app_key, app := range c.apps {
 				if len(app.Connections) == 0 {
-					log.Debug("clear empty app", app_key)
+					log.Logger.Debug("clear empty app", app_key)
 					delete(c.apps, app_key)
 				}
 			}

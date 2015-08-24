@@ -1,96 +1,123 @@
-package main
+package model
 
 import (
 	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/syhlion/go-common"
+	"github.com/syhlion/gopusher/module/log"
 	"strings"
 	"time"
 )
 
-type AppData struct {
+var (
+	AppData *appData = nil
+)
+
+func init() {
+	if AppData == nil {
+
+		db, err := sql.Open("sqlite3", "./appdata.sqlite")
+		if err != nil {
+			log.Logger.Error(err)
+			return
+		}
+		AppData = newAppData(db)
+	}
+}
+
+type AppDataResult struct {
+	AppKey       string `json:"app_key"`
+	AppName      string `json:"app_name"`
+	AuthAccount  string `json:"auth_account"`
+	AuthPassword string `json:"auth_password"`
+	RequestIP    string `json:"request_ip"`
+	Date         string `json:"date"`
+	Timestamp    string `json:"timestamp"`
+}
+type appData struct {
 	db *sql.DB
 }
 
-func NewAppData(db *sql.DB) *AppData {
-	return &AppData{db}
+func newAppData(db *sql.DB) *appData {
+	return &appData{db}
 }
 
-func (d *AppData) IsExist(app_key string) bool {
+func (d *appData) IsExist(app_key string) bool {
 	sql := "SELECT EXISTS(SELECT 1  FROM  `appdata` WHERE `app_key`= $1)"
 	var result int
 	err := d.db.QueryRow(sql, app_key).Scan(&result)
 	if err != nil {
-		log.Debug(app_key, " ", err)
+		log.Logger.Debug(app_key, " ", err)
 		return false
 	}
 
 	if result == 0 {
-		log.Debug(app_key, " no exist")
+		log.Logger.Debug(app_key, " no exist")
 		return false
 	}
 	return true
 
 }
 
-func (d *AppData) Delete(app_key string) (err error) {
+func (d *appData) Delete(app_key string) (err error) {
 	sql := "DELETE FROM `appdata` where app_key = ?"
 
 	tx, err := d.db.Begin()
 	if err != nil {
-		log.Debug(err)
+		log.Logger.Debug(err)
 		return
 	}
 	stmt, err := tx.Prepare(sql)
 	if err != nil {
-		log.Debug(app_key, " ", err)
+		log.Logger.Debug(app_key, " ", err)
 		return
 	}
 
 	_, err = stmt.Exec(app_key)
 	if err != nil {
-		log.Debug(app_key, " ", err)
+		log.Logger.Debug(app_key, " ", err)
 		return
 	}
 	err = tx.Commit()
 	if err != nil {
-		log.Debug(app_key, " ", err)
+		log.Logger.Debug(app_key, " ", err)
 		return
 	}
 	return
 
 }
 
-func (d *AppData) Get(app_key string) (r AppDataResult, err error) {
+func (d *appData) Get(app_key string) (r AppDataResult, err error) {
 
 	sql := "SELECT * FROM `appdata` WHERE app_key = ?"
 	rows, err := d.db.Query(sql)
 	if err != nil {
-		log.Debug(err)
+		log.Logger.Debug(err)
 		return
 	}
 	for rows.Next() {
 		err = rows.Scan(&r.AppName, &r.AuthAccount, &r.AuthPassword, &r.RequestIP, &r.AppKey, &r.Timestamp, &r.Date)
 		if err != nil {
-			log.Debug(err)
+			log.Logger.Debug(err)
 			return
 		}
 	}
 	return
 }
 
-func (d *AppData) GetAll() (r []AppDataResult, err error) {
+func (d *appData) GetAll() (r []AppDataResult, err error) {
 
 	sql := "SELECT * FROM `appdata`"
 	rows, err := d.db.Query(sql)
 	if err != nil {
-		log.Debug(err)
+		log.Logger.Debug(err)
 		return
 	}
 	var apps AppDataResult
 	for rows.Next() {
 		err = rows.Scan(&apps.AppName, &apps.AuthAccount, &apps.AuthPassword, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
 		if err != nil {
-			log.Debug(err)
+			log.Logger.Debug(err)
 			return
 		}
 		r = append(r, apps)
@@ -99,16 +126,16 @@ func (d *AppData) GetAll() (r []AppDataResult, err error) {
 
 }
 
-func (d *AppData) Register(app_name string, auth_account string, auth_password string, request_ip string) (app_key string, err error) {
+func (d *appData) Register(app_name string, auth_account string, auth_password string, request_ip string) (app_key string, err error) {
 	cmd := "INSERT INTO appdata(app_name,auth_account,auth_password,request_ip,app_key,timestamp,date) VALUES (?,?,?,?,?,?,?)"
 	tx, err := d.db.Begin()
 	if err != nil {
-		log.Debug(err)
+		log.Logger.Debug(err)
 		return
 	}
 	stmt, err := tx.Prepare(cmd)
 	if err != nil {
-		log.Debug(app_name, " ", request_ip, " ", err)
+		log.Logger.Debug(app_name, " ", request_ip, " ", err)
 		return
 	}
 	date := time.Now().Format("2006/01/02 15:04:05")
@@ -117,15 +144,15 @@ func (d *AppData) Register(app_name string, auth_account string, auth_password s
 	seed := strings.Join(seeds, ",")
 	app_key = common.EncodeMd5(seed)
 
-	log.Info(app_key)
+	log.Logger.Info(app_key)
 	_, err = stmt.Exec(app_name, auth_account, auth_password, request_ip, app_key, common.Time(), date)
 	if err != nil {
-		log.Debug(app_name, " ", request_ip, " ", err)
+		log.Logger.Debug(app_name, " ", request_ip, " ", err)
 		return
 	}
 	err = tx.Commit()
 	if err != nil {
-		log.Debug(app_name, " ", request_ip, " ", err)
+		log.Logger.Debug(app_name, " ", request_ip, " ", err)
 		return
 	}
 	defer stmt.Close()

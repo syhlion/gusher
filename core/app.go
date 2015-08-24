@@ -1,6 +1,7 @@
-package main
+package core
 
 import (
+	"github.com/syhlion/gopusher/module/log"
 	"regexp"
 	"sync"
 )
@@ -47,21 +48,19 @@ func (a *App) run() {
 			a.Connections[client] = true
 		case client := <-a.Unregister:
 			if _, ok := a.Connections[client]; ok {
-				//log.Debug(client.ws.RemoteAddr().String(), " ", client.Tag, " disconnect")
 				delete(a.Connections, client)
 				close(client.Send)
 			}
 			if len(a.Connections) == 0 {
-				//log.Debug("This Apps empty user")
 				break
 			}
 		case message := <-a.Boradcast:
-			log.Debug(a.key, " Boradcast start")
+			log.Logger.Debug(a.key, " Boradcast start")
 			for client := range a.Connections {
 				client.Send <- message
 			}
 		case ruleMsg := <-a.Assign:
-			log.Debug(a.key, " Assign Start")
+			log.Logger.Debug(a.key, " Assign Start")
 			i := 0
 			//迴圈跑所有連線
 			for client := range a.Connections {
