@@ -70,7 +70,7 @@ func (d *AppData) GetAll() (r []AppDataResult, err error) {
 	}
 	var apps AppDataResult
 	for rows.Next() {
-		err = rows.Scan(&apps.AppName, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
+		err = rows.Scan(&apps.AppName, &apps.AuthAccount, &apps.AuthPassword, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
 		if err != nil {
 			log.Debug(err)
 			return
