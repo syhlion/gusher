@@ -1,8 +1,8 @@
 {
-    auth_account:"account",
-    auth_password:"password",
-    environment:"DEBUG",
-    logdir:"./",
-    listent:":8001",
-    sqldir:"./appdata.sqlite"
+    "auth_account":"account",
+    "auth_password":"password",
+    "environment":"DEBUG",
+    "logdir":"console",  
+    "listen":":8001",
+    "sqldir":"./appdata.sqlite"
 }

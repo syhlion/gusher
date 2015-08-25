@@ -21,14 +21,30 @@ Install from binary
 
 ## Command
 
+* start
+
 Param | Type | Default|Dircetions
 ---|---|---|----
---addr, -a | string |:8001| Input listent ip port
---env, -e | string | PRODUCTION|Log Level PRODUCTION, DEVELOPMENT, DEBUG
---log, -l | string |console| Input console or /home/user/gusher/gusher.log
+--config, -c | string |./default.json| config
+
+## Config  
+
+```
+{
+        "auth_account":"account", //Super Admin 
+        "auth_password":"password",
+        "environment":"DEBUG",
+        "logdir":"./", // "console" or "/homs/user/x.log"
+        "listen":":8001",
+        "sqldir":"./appdata.sqlite"
+}
+                        
+```
 
 
 ## API
+
+All api need http basic Auth, Super Admin can access all api
 
 #### Register:
 
@@ -39,12 +55,16 @@ Param | Type | Default|Dircetions
 Name|Type|Directions
 ---|---|---
 app_name | string | a app_name
+auth_account | string | app admin basic auth account
+auth_password | string | app admin basic auth password
 
 * 200 status Response:  
 
 ```
 {
     "app_name":"test",
+    "auth_account":"app_admin",
+    "auth_password":"password",
     "app_key":"abcdefghijklmnop",
     "request_ip":"127.0.0.1:77777"
 }

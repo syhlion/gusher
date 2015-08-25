@@ -94,7 +94,13 @@ func (d *AppData) Get(app_key string) (r AppDataResult, err error) {
 		log.Logger.Fatal(err)
 	}
 	sql := "SELECT * FROM `appdata` WHERE app_key = ?"
-	rows, err := db.Query(sql)
+	stmt, err := db.Prepare(sql)
+	if err != nil {
+		log.Logger.Debug(err)
+		return
+	}
+
+	rows, err := stmt.Query(app_key)
 	if err != nil {
 		log.Logger.Debug(err)
 		return

@@ -1,12 +1,15 @@
 package cmd
 
 import (
+	"database/sql"
 	"github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/syhlion/gopusher/core"
-	"github.com/syhlion/gopusher/init"
+	"github.com/syhlion/gopusher/model"
+	"github.com/syhlion/gopusher/module/config"
 	"github.com/syhlion/gopusher/module/log"
-	"github.com/syhlion/gopusher/router"
+	"github.com/syhlion/gopusher/route"
 	"net/http"
 	"os"
 )
@@ -25,18 +28,38 @@ var CmdStart = cli.Command{
 	},
 }
 
+func DBinit(sqlDir string) (err error) {
+	db, err := sql.Open("sqlite3", sqlDir)
+	if err != nil {
+		return
+	}
+
+	sqlStmt := `
+	create table if not exists appdata (app_name,auth_account,auth_password,request_ip,app_key PRIMARY KEY,timestamp,date)
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return
+	}
+	return
+}
+
 //Server執行動作
 func start(c *cli.Context) {
 
-	collection := core.Collection
+	collection := core.NewCollection()
 	logger := log.Logger
 	logformat := &logrus.TextFormatter{FullTimestamp: true}
 	logger.Formatter = logformat
 
 	go collection.Run()
-	r := router.Router()
-	conf := init.GetConfig(c.String("conf"))
-	err := init.DBinit()
+	conf := config.GetConfig(c.String("conf"))
+	err := DBinit(conf.SqlDir)
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
+	appdata := model.NewAppData(conf.SqlDir)
+	r := route.Router(appdata, collection, conf)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}
@@ -55,7 +78,7 @@ func start(c *cli.Context) {
 		return logrus.InfoLevel
 	}()
 	if conf.LogDir != "console" {
-		if file, err := os.OpenFile(c.String("log"), os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
+		if file, err := os.OpenFile(conf.LogDir, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
 			log.Logger.Out = file
 		}
