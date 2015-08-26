@@ -40,12 +40,6 @@ func (h *Handler) Unregister(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type ListOnlineResult struct {
-	AppKey          string   `json:"app_key"`
-	TotalOnlineUser int      `json:"total_online_user"`
-	OnlineUser      []string `json:"online_user"`
-}
-
 func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
@@ -74,16 +68,6 @@ func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type NormalResult struct {
-	Message string `json:"message"`
-}
-
-type AppResult struct {
-	AppName   string `json:"app_name"`
-	AppKey    string `json:"app_key"`
-	RequestIP string `json:"request_ip"`
-}
-
 //註冊
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	app_name := r.FormValue("app_name")
@@ -110,13 +94,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		RequestIP: request_ip,
 	}
 	json.NewEncoder(w).Encode(result)
-}
-
-type PushResult struct {
-	AppKey  string `json:"app_key"`
-	Content string `json:"content"`
-	UserTag string `json:"user_tag"`
-	Total   int    `json:"total"`
 }
 
 //Push
