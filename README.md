@@ -85,20 +85,38 @@ auth_password | string | app admin basic auth password
 
 #### List All App:  
 
-`[GET] /api/app-list`  
+`[GET] /api/app-list/{limit}/{page}`  
 
 * 200 status Response:
 
 ```
-[
-    {
-        "app_key":"abcdefghijklmnop",
-        "app_name":"test",
-        "request_ip":"127.0.0.1:77777",
-        "date":"2015/08/04 11:22:33",
-        "timestamp":"1440149593490"
-    }
-]
+{
+    "limit":2,
+    "offset":1,
+    "total":2,
+    "data":
+    [
+        {
+            "app_key":"db15759925b279b4b037d7a4e1f92b0f",
+            "app_name":"test",
+            "auth_account":"scott",
+            "auth_password":"760804",
+            "request_ip":"127.0.0.1:50040",
+            "date":"2015/08/25 11:39:12",
+            "timestamp":"1440473952104"
+        },
+        {
+            "app_key":"56f08a519be877060fb4a4ea2a75aad8",
+            "app_name":"test2",
+            "auth_account":"scott",
+            "auth_password":"760804",
+            "request_ip":"127.0.0.1:55567",
+            "date":"2015/08/26 12:10:54",
+            "timestamp":"1440562254686"
+        }
+    ]
+}
+
 ```
 
 
@@ -126,15 +144,17 @@ user_tag | string | the message who will receive. Support Regex. OPTION
 
 #### List Online User:  
 
-`[GET] /api/{app_key}/listonlineuser`  
+`[GET] /api/{app_key}/listonlineuser/{limit}/{page}`  
 
 * 200 status Response:
 
 ```
 {
     "app_key":"abcdefghijklmnop",
-    "total_online_user":"1",
-    "online_user:["A:1"]
+    "total":1,
+    "limit":1,
+    "page":1
+    "user_tags":["A:1"]
 }
 ```
 
