@@ -28,8 +28,8 @@ var CmdStart = cli.Command{
 	},
 }
 
-func DBinit(sqlDir string) (err error) {
-	db, err := sql.Open("sqlite3", sqlDir)
+func DBinit(sqlDir string) (db *sql.DB, err error) {
+	db, err = sql.Open("sqlite3", sqlDir)
 	if err != nil {
 		return
 	}
@@ -54,11 +54,11 @@ func start(c *cli.Context) {
 
 	go collection.Run()
 	conf := config.GetConfig(c.String("conf"))
-	err := DBinit(conf.SqlDir)
+	db, err := DBinit(conf.SqlDir)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}
-	appdata := model.NewAppData(conf.SqlDir)
+	appdata := model.NewAppData(db)
 	r := route.Router(appdata, collection, conf)
 	if err != nil {
 		log.Logger.Fatal(err)
