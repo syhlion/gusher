@@ -13,6 +13,7 @@ func Router(appdata *model.AppData, collection *core.Collection, config *config.
 
 	handler := &handle.Handler{appdata, collection}
 	middleware := &handle.Middleware{appdata, config}
+
 	// ws handshake
 	router.HandleFunc("/ws/{app_key}/{user_tag}", middleware.Use(handler.WS, middleware.AppKeyVerity)).Methods("GET")
 
@@ -26,9 +27,9 @@ func Router(appdata *model.AppData, collection *core.Collection, config *config.
 	router.HandleFunc("/api/{app_key}/unregister", middleware.Use(handler.Unregister, middleware.AppKeyVerity, middleware.BasicAuth)).Methods("DELETE")
 
 	//list app
-	router.HandleFunc("/api/app-list", middleware.Use(handler.AppList, middleware.BasicAuth)).Methods("GET")
+	router.HandleFunc("/api/app-list/{limit:[0-9]}/{page:[0-9]}", middleware.Use(handler.AppList, middleware.BasicAuth)).Methods("GET")
 
 	//list how many client
-	router.HandleFunc("/api/{app_key}/listonlineuser", middleware.Use(handler.ListClient, middleware.AppKeyVerity, middleware.BasicAuth)).Methods("GET")
+	router.HandleFunc("/api/{app_key}/listonlineuser/{limit:[0-9]}/{page:[0-9]}", middleware.Use(handler.ListClient, middleware.AppKeyVerity, middleware.BasicAuth)).Methods("GET")
 	return
 }
