@@ -1,18 +1,23 @@
 package handle
 
 import (
+	"bytes"
 	"encoding/base64"
 	"github.com/gorilla/mux"
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/config"
 	"github.com/syhlion/gopusher/module/log"
+	"github.com/syhlion/gopusher/module/requestworker"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 )
 
 type Middleware struct {
 	AppData *model.AppData
 	Config  *config.Config
+	Worker  *requestworker.Worker
 }
 
 //Middleware use
@@ -22,6 +27,53 @@ func (m *Middleware) Use(h http.HandlerFunc, middleware ...func(http.HandlerFunc
 	}
 
 	return h
+}
+
+func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		params := mux.Vars(r)
+		token := r.FormValue("token")
+		data, err := m.AppData.Get(params["app_key"])
+		if err != nil {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+		hook_url := data.ConnectHook
+		if hook_url == "" {
+			h.ServeHTTP(w, r)
+			return
+		}
+		u, err := url.Parse(hook_url)
+		if err != nil {
+			log.Logger.Warn(r.RemoteAddr, " ", params["app_key"], " ", err.Error())
+			http.Error(w, "hook url error", 404)
+			return
+		}
+
+		//hook  url requset
+		v := url.Values{}
+		v.Add("token", token)
+		req, err := http.NewRequest("POST", u.String(), bytes.NewBufferString(v.Encode()))
+		if err != nil {
+			log.Logger.Warn(r.RemoteAddr, " ", err.Error)
+			http.Error(w, "hook error", 404)
+			return
+		}
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Add("Content-Length", strconv.Itoa(len(v.Encode())))
+		job := &requestworker.Job{
+			Resq:   req,
+			Result: make(chan requestworker.Result),
+		}
+		m.Worker.JobQuene <- job
+		rs := <-job.Result
+		if rs.Err != nil {
+			log.Logger.Warn(r.RemoteAddr, " ", rs.Err.Error())
+			http.Error(w, "hook error", 404)
+			return
+		}
+		h.ServeHTTP(w, r)
+	}
 }
 
 func (m *Middleware) AppKeyVerity(h http.HandlerFunc) http.HandlerFunc {
