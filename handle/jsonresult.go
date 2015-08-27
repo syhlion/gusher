@@ -22,9 +22,10 @@ type NormalResult struct {
 }
 
 type AppResult struct {
-	AppName   string `json:"app_name"`
-	AppKey    string `json:"app_key"`
-	RequestIP string `json:"request_ip"`
+	AppName     string `json:"app_name"`
+	AppKey      string `json:"app_key"`
+	ConnectHook string `json:"connect_hook"`
+	RequestIP   string `json:"request_ip"`
 }
 
 type AppListResult struct {

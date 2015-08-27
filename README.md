@@ -4,7 +4,6 @@
 
 ## Requirements
 
-* Linux 64 bit
 * sqlite 3
 
 ## Usage
@@ -25,7 +24,7 @@ Install from binary
 
 Param | Type | Default|Dircetions
 ---|---|---|----
---config, -c | string |./default.json| config
+--config, -c | string |./default.json| config Optinal
 
 ## Config  
 
@@ -55,8 +54,9 @@ All api need http basic Auth, Super Admin can access all api
 Name|Type|Directions
 ---|---|---
 app_name | string | a app_name
-auth_account | string | app admin basic auth account
-auth_password | string | app admin basic auth password
+auth_account | string | app admin basic auth account. Require
+auth_password | string | app admin basic auth password. Require
+connect_hook | string | You can take this verification [webhook](https://github.com/syhlion/gopusher/#web-hook). Optinal
 
 * 200 status Response:  
 
@@ -66,6 +66,7 @@ auth_password | string | app admin basic auth password
     "auth_account":"app_admin",
     "auth_password":"password",
     "app_key":"abcdefghijklmnop",
+    "connect_hook:"http://localhost/vaildlogin"
     "request_ip":"127.0.0.1:77777"
 }
 ```
@@ -101,6 +102,7 @@ auth_password | string | app admin basic auth password
             "app_name":"test",
             "auth_account":"scott",
             "auth_password":"760804",
+            "connect_hook:"http://localhost/vaildlogin"
             "request_ip":"127.0.0.1:50040",
             "date":"2015/08/25 11:39:12",
             "timestamp":"1440473952104"
@@ -110,6 +112,7 @@ auth_password | string | app admin basic auth password
             "app_name":"test2",
             "auth_account":"scott",
             "auth_password":"760804",
+            "connect_hook:"http://localhost/vaildlogin"
             "request_ip":"127.0.0.1:55567",
             "date":"2015/08/26 12:10:54",
             "timestamp":"1440562254686"
@@ -129,7 +132,7 @@ auth_password | string | app admin basic auth password
 Name|Type|Dircetions
 ---|---|---
 content| string | the message you send
-user_tag | string | the message who will receive. Support Regex. OPTION
+user_tag | string | the message who will receive. Support Regex. Optinal
 
 * 200 status Response:  
 
@@ -160,7 +163,26 @@ user_tag | string | the message who will receive. Support Regex. OPTION
 
 #### Client Connect:  
 
+If you have fill in Register api connect_hook, use this:  
+
+`[GET] ws://localhost/ws/{app_key}/{user_tag}?token={token}`  
+
+
+If it is not,use this:  
+
 `[GET] ws://localhost/ws/{app_key}/{user_tag}`
 
 
+## WEB hook
 
+#### Connect Hook
+
+If you use this, you need to prepare a hook api, to accept http request POST "token"  
+
+If successful at http body output "ok"   
+
+* Param:  
+
+Name|Type|Dircetions
+---|---|---
+token| string | Your server api  will get POST from GuPusher

@@ -151,9 +151,10 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := AppResult{
-		AppName:   app_name,
-		AppKey:    app_key,
-		RequestIP: request_ip,
+		AppName:     app_name,
+		AppKey:      app_key,
+		ConnectHook: connect_hook,
+		RequestIP:   request_ip,
 	}
 	json.NewEncoder(w).Encode(result)
 }
