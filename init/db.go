@@ -1,4 +1,4 @@
-package initialization
+package init
 
 import (
 	"database/sql"
@@ -6,7 +6,6 @@ import (
 )
 
 func DBinit() (err error) {
-
 	db, err := sql.Open("sqlite3", "./appdata.sqlite")
 	if err != nil {
 		return

@@ -1,4 +1,4 @@
-package handler
+package handle
 
 import (
 	"github.com/gorilla/mux"
@@ -14,7 +14,7 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-func WSHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) WS(w http.ResponseWriter, r *http.Request) {
 
 	log.Logger.Info(r.RemoteAddr, " handshake start")
 	params := mux.Vars(r)
@@ -26,12 +26,8 @@ func WSHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if core.Collection == nil {
-		log.Logger.Info("emtpy collection")
-		return
-	}
-	app, err := core.Collection.Join(app_key)
-	if core.Collection == nil {
+	app, err := h.Collection.Join(app_key)
+	if h.Collection == nil {
 		log.Logger.Info("emtpy collection")
 		return
 	}

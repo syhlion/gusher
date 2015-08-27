@@ -1,35 +1,69 @@
-package handler
+package handle
 
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gopusher/core"
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/log"
 	"net/http"
+	"strconv"
 )
 
-func AppListHandler(w http.ResponseWriter, r *http.Request) {
-	rs, err := model.AppData.GetAll()
+func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
+
+	params := mux.Vars(r)
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		log.Logger.Warn("ParseError")
+	}
+	page, err := strconv.Atoi(params["page"])
+	if err != nil {
+		log.Logger.Warn("ParseError")
+	}
+
+	rs, err := h.AppData.GetAll()
 	if err != nil {
 		log.Logger.Error(err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
+	//pagination
+	offset := (page - 1) * limit
+	count := 0
+	var tmprs []model.AppDataResult
+	for n, v := range rs {
+		if n >= offset {
+			count++
+			tmprs = append(tmprs, v)
+			if count == limit {
+				break
+
+			}
+
+		}
+	}
+	result := AppListResult{
+		Limit: limit,
+		Page:  page,
+		Total: len(rs),
+		Data:  tmprs,
+	}
+
 	log.Logger.Info(r.RemoteAddr, " ListApp Scuess")
-	json.NewEncoder(w).Encode(rs)
+	json.NewEncoder(w).Encode(result)
 
 }
 
-func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Unregister(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
 	if app_key == "" {
-		//log.Warn(r.RemoteAddr, " app_key empty")
+		log.Logger.Warn(r.RemoteAddr, " app_key empty")
 		http.Error(w, "app_key empty", 404)
 		return
 	}
-	err := model.AppData.Delete(app_key)
+	err := h.AppData.Delete(app_key)
 	if err != nil {
 
 		log.Logger.Warn(r.RemoteAddr, " ", err)
@@ -42,55 +76,65 @@ func UnregisterHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-type ListOnlineResult struct {
-	AppKey          string   `json:"app_key"`
-	TotalOnlineUser int      `json:"total_online_user"`
-	OnlineUser      []string `json:"online_user"`
-}
-
-func ListClientHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
 	if app_key == "" {
-		//log.Warn(r.RemoteAddr, " app_key empty")
+		log.Logger.Warn(r.RemoteAddr, " app_key empty")
 		http.Error(w, "app_key empty", 404)
 		return
 	}
+	limit, err := strconv.Atoi(params["limit"])
+	if err != nil {
+		log.Logger.Warn("ParseError")
+	}
+	page, err := strconv.Atoi(params["page"])
+	if err != nil {
+		log.Logger.Warn("ParseError")
+	}
 
-	app, err := core.Collection.Get(app_key)
+	app, err := h.Collection.Get(app_key)
 
 	if err != nil {
-		//log.Warn(r.RemoteAddr, " ", app_key, " ", err)
+		log.Logger.Warn(r.RemoteAddr, " ", app_key, " ", err)
 		http.Error(w, err.Error(), 403)
 		return
 	}
 	onlineUsers := app.GetAllUserTag()
 
+	//pagination
+	offset := (page - 1) * limit
+	count := 0
+	var tmprs []string
+	for n, v := range onlineUsers {
+		if n >= offset {
+			count++
+			tmprs = append(tmprs, v)
+			if count == limit {
+				break
+
+			}
+
+		}
+	}
 	lo := ListOnlineResult{
-		AppKey:          app_key,
-		TotalOnlineUser: len(onlineUsers),
-		OnlineUser:      onlineUsers,
+		AppKey:   app_key,
+		Total:    len(onlineUsers),
+		UserTags: tmprs,
+		Limit:    limit,
+		Page:     page,
 	}
 	log.Logger.Info(r.RemoteAddr, " GetAppUsers")
 	json.NewEncoder(w).Encode(lo)
 
 }
 
-type NormalResult struct {
-	Message string `json:"message"`
-}
-
-type AppResult struct {
-	AppName   string `json:"app_name"`
-	AppKey    string `json:"app_key"`
-	RequestIP string `json:"request_ip"`
-}
-
 //註冊
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	app_name := r.FormValue("app_name")
 	auth_password := r.FormValue("auth_password")
 	auth_account := r.FormValue("auth_account")
+	connect_hook := r.FormValue("connect_hook")
 	request_ip := r.RemoteAddr
 
 	if app_name == "" || request_ip == "" || auth_password == "" || auth_account == "" {
@@ -98,7 +142,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "app_name || request_op empty", 404)
 		return
 	}
-	app_key, err := model.AppData.Register(app_name, auth_account, auth_password, request_ip)
+	app_key, err := h.AppData.Register(app_name, auth_account, auth_password, connect_hook, request_ip)
 
 	if err != nil {
 		log.Logger.Warn(r.RemoteAddr, " ", err)
@@ -107,22 +151,16 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result := AppResult{
-		AppName:   app_name,
-		AppKey:    app_key,
-		RequestIP: request_ip,
+		AppName:     app_name,
+		AppKey:      app_key,
+		ConnectHook: connect_hook,
+		RequestIP:   request_ip,
 	}
 	json.NewEncoder(w).Encode(result)
 }
 
-type PushResult struct {
-	AppKey  string `json:"app_key"`
-	Content string `json:"content"`
-	UserTag string `json:"user_tag"`
-	Total   int    `json:"total"`
-}
-
 //Push
-func PushHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	app_key := params["app_key"]
@@ -137,7 +175,7 @@ func PushHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app, err := core.Collection.Get(app_key)
+	app, err := h.Collection.Get(app_key)
 	if err != nil {
 		log.Logger.Warn(r.RemoteAddr, " ", app_key, " ", err)
 		http.Error(w, err.Error(), 403)
