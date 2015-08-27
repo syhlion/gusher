@@ -134,6 +134,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	app_name := r.FormValue("app_name")
 	auth_password := r.FormValue("auth_password")
 	auth_account := r.FormValue("auth_account")
+	connect_hook := r.FormValue("connect_hook")
 	request_ip := r.RemoteAddr
 
 	if app_name == "" || request_ip == "" || auth_password == "" || auth_account == "" {
@@ -141,7 +142,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "app_name || request_op empty", 404)
 		return
 	}
-	app_key, err := h.AppData.Register(app_name, auth_account, auth_password, request_ip)
+	app_key, err := h.AppData.Register(app_name, auth_account, auth_password, connect_hook, request_ip)
 
 	if err != nil {
 		log.Logger.Warn(r.RemoteAddr, " ", err)

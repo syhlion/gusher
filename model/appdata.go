@@ -18,6 +18,7 @@ type AppDataResult struct {
 	AppName      string `json:"app_name"`
 	AuthAccount  string `json:"auth_account"`
 	AuthPassword string `json:"auth_password"`
+	ConnectHook  string `json:"connect_hook"`
 	RequestIP    string `json:"request_ip"`
 	Date         string `json:"date"`
 	Timestamp    string `json:"timestamp"`
@@ -91,7 +92,7 @@ func (d *AppData) Get(app_key string) (r AppDataResult, err error) {
 		return
 	}
 	for rows.Next() {
-		err = rows.Scan(&r.AppName, &r.AuthAccount, &r.AuthPassword, &r.RequestIP, &r.AppKey, &r.Timestamp, &r.Date)
+		err = rows.Scan(&r.AppName, &r.AuthAccount, &r.AuthPassword, &r.ConnectHook, &r.RequestIP, &r.AppKey, &r.Timestamp, &r.Date)
 		if err != nil {
 			log.Logger.Debug(err)
 			return
@@ -110,7 +111,7 @@ func (d *AppData) GetAll() (r []AppDataResult, err error) {
 	}
 	var apps AppDataResult
 	for rows.Next() {
-		err = rows.Scan(&apps.AppName, &apps.AuthAccount, &apps.AuthPassword, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
+		err = rows.Scan(&apps.AppName, &apps.AuthAccount, &apps.AuthPassword, &apps.ConnectHook, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
 		if err != nil {
 			log.Logger.Debug(err)
 			return
@@ -121,8 +122,8 @@ func (d *AppData) GetAll() (r []AppDataResult, err error) {
 
 }
 
-func (d *AppData) Register(app_name string, auth_account string, auth_password string, request_ip string) (app_key string, err error) {
-	cmd := "INSERT INTO appdata(app_name,auth_account,auth_password,request_ip,app_key,timestamp,date) VALUES (?,?,?,?,?,?,?)"
+func (d *AppData) Register(app_name string, auth_account string, auth_password string, connect_hook string, request_ip string) (app_key string, err error) {
+	cmd := "INSERT INTO appdata(app_name,auth_account,auth_password,connect_hook,request_ip,app_key,timestamp,date) VALUES (?,?,?,?,?,?,?,?)"
 	tx, err := d.db.Begin()
 	if err != nil {
 		log.Logger.Debug(err)
@@ -140,7 +141,7 @@ func (d *AppData) Register(app_name string, auth_account string, auth_password s
 	app_key = common.EncodeMd5(seed)
 
 	log.Logger.Info(app_key)
-	_, err = stmt.Exec(app_name, auth_account, auth_password, request_ip, app_key, common.Time(), date)
+	_, err = stmt.Exec(app_name, auth_account, auth_password, connect_hook, request_ip, app_key, common.Time(), date)
 	if err != nil {
 		log.Logger.Debug(app_name, " ", request_ip, " ", err)
 		return

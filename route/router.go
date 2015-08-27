@@ -6,16 +6,17 @@ import (
 	"github.com/syhlion/gopusher/handle"
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/config"
+	"github.com/syhlion/gopusher/module/requestworker"
 )
 
-func Router(appdata *model.AppData, collection *core.Collection, config *config.Config) (router *mux.Router) {
+func Router(appdata *model.AppData, collection *core.Collection, config *config.Config, worker *requestworker.Worker) (router *mux.Router) {
 	router = mux.NewRouter()
 
 	handler := &handle.Handler{appdata, collection}
-	middleware := &handle.Middleware{appdata, config}
+	middleware := &handle.Middleware{appdata, config, worker}
 
 	// ws handshake
-	router.HandleFunc("/ws/{app_key}/{user_tag}", middleware.Use(handler.WS, middleware.AppKeyVerity)).Methods("GET")
+	router.HandleFunc("/ws/{app_key}/{user_tag}", middleware.Use(handler.WS, middleware.AppKeyVerity, middleware.ConnectWebHook)).Methods("GET")
 
 	//push message api
 	router.HandleFunc("/api/push/{app_key}", middleware.Use(handler.Push, middleware.AppKeyVerity, middleware.BasicAuth)).Methods("POST")

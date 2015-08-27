@@ -9,9 +9,11 @@ import (
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/config"
 	"github.com/syhlion/gopusher/module/log"
+	"github.com/syhlion/gopusher/module/requestworker"
 	"github.com/syhlion/gopusher/route"
 	"net/http"
 	"os"
+	"time"
 )
 
 var CmdStart = cli.Command{
@@ -35,7 +37,7 @@ func DBinit(sqlDir string) (db *sql.DB, err error) {
 	}
 
 	sqlStmt := `
-	create table if not exists appdata (app_name,auth_account,auth_password,request_ip,app_key PRIMARY KEY,timestamp,date)
+	create table if not exists appdata (app_name,auth_account,auth_password,connect_hook,request_ip,app_key PRIMARY KEY,timestamp,date)
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
@@ -59,7 +61,15 @@ func start(c *cli.Context) {
 		log.Logger.Fatal(err)
 	}
 	appdata := model.NewAppData(db)
-	r := route.Router(appdata, collection, conf)
+	worker := &requestworker.Worker{
+		Threads:  5,
+		JobQuene: make(chan *requestworker.Job, 1024),
+		HttpClient: &http.Client{
+			Timeout: time.Duration(5 * time.Second),
+		},
+	}
+	go worker.Start()
+	r := route.Router(appdata, collection, conf, worker)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}
