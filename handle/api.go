@@ -3,9 +3,11 @@ package handle
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"github.com/syhlion/gopusher/core"
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/log"
 	"net/http"
+	"regexp"
 	"strconv"
 )
 
@@ -187,10 +189,14 @@ func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
 		app.Boradcast <- b
 		totalResult = len(app.Connections)
 	} else {
-		m := make(map[string][]byte)
-		m[user_tag] = b
-		app.Assign <- m
-		totalResult = <-app.AssignTotalResult
+		app.Filter <- func(c *core.Client) {
+			if vailed, err := regexp.Compile(user_tag); err == nil {
+				if vailed.MatchString(c.Tag) {
+					c.Send <- b
+				}
+			}
+		}
+
 	}
 
 	pushResult := PushResult{
