@@ -49,30 +49,42 @@ func DBinit(sqlDir string) (db *sql.DB, err error) {
 //Server執行動作
 func start(c *cli.Context) {
 
-	collection := core.NewCollection()
 	logger := log.Logger
 	logformat := &logrus.TextFormatter{FullTimestamp: true}
 	logger.Formatter = logformat
 
-	go collection.Run()
 	conf := config.GetConfig(c.String("conf"))
 	db, err := DBinit(conf.SqlDir)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}
+
+	//init core
+	collection := core.NewCollection()
+	go collection.Run()
+
+	//init model appdata
 	appdata := model.NewAppData(db)
+
+	//init requestworker
 	worker := &requestworker.Worker{
-		Threads:  5,
+		Threads:  conf.MaxWaitHook,
 		JobQuene: make(chan *requestworker.Job, 1024),
 		HttpClient: &http.Client{
 			Timeout: time.Duration(5 * time.Second),
 		},
 	}
+
+	//work start wait
 	go worker.Start()
+
+	//init router
 	r := route.Router(appdata, collection, conf, worker)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}
+
+	//init env
 	env := func() logrus.Level {
 		switch conf.Environment {
 		case "PRODUCTION":
@@ -87,6 +99,8 @@ func start(c *cli.Context) {
 		}
 		return logrus.InfoLevel
 	}()
+
+	//init log print
 	if conf.LogDir != "console" {
 		if file, err := os.OpenFile(conf.LogDir, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
@@ -95,5 +109,7 @@ func start(c *cli.Context) {
 	}
 	log.Logger.Level = env
 	log.Logger.Info("Server Start ", conf.Listen)
+
+	//server start
 	log.Logger.Fatal(http.ListenAndServe(conf.Listen, r))
 }

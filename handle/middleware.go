@@ -38,11 +38,15 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, err.Error(), 404)
 			return
 		}
+
+		// no fill in connect_hook
 		hook_url := data.ConnectHook
 		if hook_url == "" {
 			h.ServeHTTP(w, r)
 			return
 		}
+
+		//fill in connect_hook bug url parse error
 		u, err := url.Parse(hook_url)
 		if err != nil {
 			log.Logger.Warn(r.RemoteAddr, " ", params["app_key"], " ", err.Error())
@@ -55,8 +59,8 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		v.Add("token", token)
 		req, err := http.NewRequest("POST", u.String(), bytes.NewBufferString(v.Encode()))
 		if err != nil {
-			log.Logger.Warn(r.RemoteAddr, " ", err.Error)
-			http.Error(w, "hook error", 404)
+			log.Logger.Warn(r.RemoteAddr, " ", err.Error())
+			http.Error(w, err.Error(), 404)
 			return
 		}
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -69,7 +73,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		rs := <-job.Result
 		if rs.Err != nil {
 			log.Logger.Warn(r.RemoteAddr, " ", rs.Err.Error())
-			http.Error(w, "hook error", 404)
+			http.Error(w, rs.Err.Error(), 404)
 			return
 		}
 		h.ServeHTTP(w, r)
