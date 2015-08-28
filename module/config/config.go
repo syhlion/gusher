@@ -13,6 +13,7 @@ type Config struct {
 	LogDir       string `json:"logdir"`
 	Listen       string `json:"listen"`
 	SqlDir       string `json:"sqldir"`
+	MaxWaitHook  int    `json:"max_wait_hook"`
 }
 
 func GetConfig(configDir string) *Config {

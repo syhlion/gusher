@@ -4,5 +4,6 @@
     "environment":"DEBUG",
     "logdir":"console",  
     "listen":":8001",
-    "sqldir":"./appdata.sqlite"
+    "sqldir":"./appdata.sqlite",
+    "max_wait_hook":10
 }

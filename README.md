@@ -35,7 +35,8 @@ Param | Type | Default|Dircetions
         "environment":"DEBUG",
         "logdir":"./", // "console" or "/homs/user/x.log"
         "listen":":8001",
-        "sqldir":"./appdata.sqlite"
+        "sqldir":"./appdata.sqlite",
+        "max_wait_hook":10
 }
                         
 ```
