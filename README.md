@@ -1,6 +1,6 @@
 # GoPusher
 
-[Pusher](https://pusher.com/) implment server-side by golang
+[Pusher](https://pusher.com/docs) implment server-side by golang
 
 ## Requirements
 
