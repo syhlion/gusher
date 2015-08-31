@@ -2,11 +2,13 @@ package handle
 
 import (
 	"encoding/json"
+	"net/http"
+	"regexp"
+	"strconv"
+
 	"github.com/gorilla/mux"
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/log"
-	"net/http"
-	"strconv"
 )
 
 func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
@@ -187,13 +189,20 @@ func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
 		app.Boradcast <- b
 		totalResult = len(app.Connections)
 	} else {
-		m := make(map[string][]byte)
-		m[user_tag] = b
-		app.Assign <- m
-		totalResult = <-app.AssignTotalResult
+		for client := range app.Connections {
+			if vailed, err := regexp.Compile(user_tag); err == nil {
+				if vailed.MatchString(client.Tag) {
+
+					client.Send <- b
+					totalResult++
+				}
+			}
+
+		}
+
 	}
 
-	pushResult := PushResult{
+	pushResult := &PushResult{
 		AppKey:  app_key,
 		Content: content,
 		UserTag: user_tag,

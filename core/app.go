@@ -1,32 +1,28 @@
 package core
 
 import (
-	"github.com/syhlion/gopusher/module/log"
-	"regexp"
 	"sync"
+
+	"github.com/syhlion/gopusher/module/log"
 )
 
 type App struct {
-	key               string
-	lock              *sync.RWMutex
-	Connections       map[*Client]bool
-	AssignTotalResult chan int
-	Assign            chan map[string][]byte
-	Boradcast         chan []byte
-	Register          chan *Client
-	Unregister        chan *Client
+	key         string
+	lock        *sync.RWMutex
+	Connections map[*Client]bool
+	Boradcast   chan []byte
+	Register    chan *Client
+	Unregister  chan *Client
 }
 
 func NewApp(app_key string) *App {
 	return &App{
-		key:               app_key,
-		lock:              new(sync.RWMutex),
-		Connections:       make(map[*Client]bool, 1024),
-		AssignTotalResult: make(chan int),
-		Assign:            make(chan map[string][]byte, 1024),
-		Boradcast:         make(chan []byte, 1024),
-		Register:          make(chan *Client, 1024),
-		Unregister:        make(chan *Client, 1024),
+		key:         app_key,
+		lock:        new(sync.RWMutex),
+		Connections: make(map[*Client]bool, 1024),
+		Boradcast:   make(chan []byte, 1024),
+		Register:    make(chan *Client, 1024),
+		Unregister:  make(chan *Client, 1024),
 	}
 }
 
@@ -59,26 +55,6 @@ func (a *App) run() {
 			for client := range a.Connections {
 				client.Send <- message
 			}
-		case ruleMsg := <-a.Assign:
-			log.Logger.Debug(a.key, " Assign Start")
-			i := 0
-			//迴圈跑所有連線
-			for client := range a.Connections {
-
-				//跑規則map
-				for rule, message := range ruleMsg {
-
-					//檢查正規式
-					if vailed, err := regexp.Compile(rule); err == nil {
-						if vailed.MatchString(client.Tag) {
-
-							client.Send <- message
-							i++
-						}
-					}
-				}
-			}
-			a.AssignTotalResult <- i
 		}
 	}
 	defer func() {
