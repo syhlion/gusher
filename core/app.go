@@ -1,15 +1,15 @@
 package core
 
 import (
-	"github.com/syhlion/gopusher/module/log"
 	"sync"
+
+	"github.com/syhlion/gopusher/module/log"
 )
 
 type App struct {
 	key         string
 	lock        *sync.RWMutex
 	Connections map[*Client]bool
-	Filter      chan func(m map[*Client]bool)
 	Boradcast   chan []byte
 	Register    chan *Client
 	Unregister  chan *Client
@@ -20,7 +20,6 @@ func NewApp(app_key string) *App {
 		key:         app_key,
 		lock:        new(sync.RWMutex),
 		Connections: make(map[*Client]bool, 1024),
-		Filter:      make(chan func(m map[*Client]bool)),
 		Boradcast:   make(chan []byte, 1024),
 		Register:    make(chan *Client, 1024),
 		Unregister:  make(chan *Client, 1024),
@@ -56,10 +55,6 @@ func (a *App) run() {
 			for client := range a.Connections {
 				client.Send <- message
 			}
-		case filter := <-a.Filter:
-			log.Logger.Debug(a.key, " Filter Start")
-			//迴圈跑所有連線
-			filter(a.Connections)
 		}
 	}
 	defer func() {

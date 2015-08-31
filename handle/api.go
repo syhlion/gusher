@@ -2,13 +2,13 @@ package handle
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"github.com/syhlion/gopusher/core"
-	"github.com/syhlion/gopusher/model"
-	"github.com/syhlion/gopusher/module/log"
 	"net/http"
 	"regexp"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/syhlion/gopusher/model"
+	"github.com/syhlion/gopusher/module/log"
 )
 
 func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
@@ -184,28 +184,21 @@ func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	totalResult := 0
-	tmp := make(chan int)
 	b := []byte(content)
 	if user_tag == "" {
 		app.Boradcast <- b
 		totalResult = len(app.Connections)
 	} else {
-		app.Filter <- func(m map[*core.Client]bool) {
-			tmpCount := 0
-			for client := range m {
-				if vailed, err := regexp.Compile(user_tag); err == nil {
-					if vailed.MatchString(client.Tag) {
+		for client := range app.Connections {
+			if vailed, err := regexp.Compile(user_tag); err == nil {
+				if vailed.MatchString(client.Tag) {
 
-						client.Send <- b
-						tmpCount++
-					}
+					client.Send <- b
+					totalResult++
 				}
-
 			}
-			totalResult = tmpCount
-			tmp <- totalResult
+
 		}
-		<-tmp
 
 	}
 
