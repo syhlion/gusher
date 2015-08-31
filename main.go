@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/codegangsta/cli"
-	"github.com/syhlion/gopusher/cmd"
 	"os"
 	"runtime"
+
+	"github.com/codegangsta/cli"
+	"github.com/syhlion/gopusher/cmd"
 )
 
 const (
-	APP_VER = "0.4.1"
+	APP_VER = "0.4.2"
 )
 
 func init() {
