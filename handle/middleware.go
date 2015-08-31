@@ -3,15 +3,16 @@ package handle
 import (
 	"bytes"
 	"encoding/base64"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
 	"github.com/gorilla/mux"
 	"github.com/syhlion/gopusher/model"
 	"github.com/syhlion/gopusher/module/config"
 	"github.com/syhlion/gopusher/module/log"
 	"github.com/syhlion/gopusher/module/requestworker"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
 )
 
 type Middleware struct {
@@ -27,6 +28,14 @@ func (m *Middleware) Use(h http.HandlerFunc, middleware ...func(http.HandlerFunc
 	}
 
 	return h
+}
+
+func (m *Middleware) LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Logger.Info(r.RemoteAddr, " ", r.Method, " ", r.RequestURI, " ", r.Header.Get("Authorization"))
+		h.ServeHTTP(w, r)
+
+	}
 }
 
 func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {

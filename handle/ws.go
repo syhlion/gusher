@@ -1,11 +1,12 @@
 package handle
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/syhlion/gopusher/core"
 	"github.com/syhlion/gopusher/module/log"
-	"net/http"
 )
 
 var upgrader = websocket.Upgrader{
@@ -52,5 +53,5 @@ func (h *Handler) WS(w http.ResponseWriter, r *http.Request) {
 	log.Logger.Info(r.RemoteAddr, " login ", app_key, " Scuess")
 	go client.WritePump()
 	client.ReadPump()
-	defer log.Logger.Info(r.RemoteAddr, " logout")
+	defer log.Logger.Info(r.RemoteAddr, " ", user_tag, " logout", " ", app_key)
 }
