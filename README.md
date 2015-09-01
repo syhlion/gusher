@@ -67,7 +67,7 @@ connect_hook | string | You can take this verification [webhook](https://github.
     "auth_account":"app_admin",
     "auth_password":"password",
     "app_key":"abcdefghijklmnop",
-    "connect_hook:"http://localhost/vaildlogin"
+    "connect_hook":"http://localhost/vaildlogin"
     "request_ip":"127.0.0.1:77777"
 }
 ```
@@ -103,7 +103,7 @@ connect_hook | string | You can take this verification [webhook](https://github.
             "app_name":"test",
             "auth_account":"scott",
             "auth_password":"760804",
-            "connect_hook:"http://localhost/vaildlogin"
+            "connect_hook":"http://localhost/vaildlogin"
             "request_ip":"127.0.0.1:50040",
             "date":"2015/08/25 11:39:12",
             "timestamp":"1440473952104"
@@ -113,7 +113,7 @@ connect_hook | string | You can take this verification [webhook](https://github.
             "app_name":"test2",
             "auth_account":"scott",
             "auth_password":"760804",
-            "connect_hook:"http://localhost/vaildlogin"
+            "connect_hook":"http://localhost/vaildlogin"
             "request_ip":"127.0.0.1:55567",
             "date":"2015/08/26 12:10:54",
             "timestamp":"1440562254686"
