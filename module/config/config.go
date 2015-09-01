@@ -2,8 +2,9 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/syhlion/gopusher/module/log"
 	"os"
+
+	"github.com/syhlion/gusher/module/log"
 )
 
 type Config struct {

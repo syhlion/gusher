@@ -1,9 +1,10 @@
 package core
 
 import (
-	"github.com/syhlion/gopusher/module/log"
 	"sync"
 	"time"
+
+	"github.com/syhlion/gusher/module/log"
 )
 
 type Collection struct {

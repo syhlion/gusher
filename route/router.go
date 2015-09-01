@@ -2,11 +2,11 @@ package route
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gopusher/core"
-	"github.com/syhlion/gopusher/handle"
-	"github.com/syhlion/gopusher/model"
-	"github.com/syhlion/gopusher/module/config"
-	"github.com/syhlion/gopusher/module/requestworker"
+	"github.com/syhlion/gusher/core"
+	"github.com/syhlion/gusher/handle"
+	"github.com/syhlion/gusher/model"
+	"github.com/syhlion/gusher/module/config"
+	"github.com/syhlion/gusher/module/requestworker"
 )
 
 func Router(appdata *model.AppData, collection *core.Collection, config *config.Config, worker *requestworker.Worker) (router *mux.Router) {

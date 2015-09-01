@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gopusher/model"
-	"github.com/syhlion/gopusher/module/config"
-	"github.com/syhlion/gopusher/module/log"
-	"github.com/syhlion/gopusher/module/requestworker"
+	"github.com/syhlion/gusher/model"
+	"github.com/syhlion/gusher/module/config"
+	"github.com/syhlion/gusher/module/log"
+	"github.com/syhlion/gusher/module/requestworker"
 )
 
 type Middleware struct {

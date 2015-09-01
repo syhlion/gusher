@@ -3,7 +3,7 @@ package core
 import (
 	"sync"
 
-	"github.com/syhlion/gopusher/module/log"
+	"github.com/syhlion/gusher/module/log"
 )
 
 type App struct {

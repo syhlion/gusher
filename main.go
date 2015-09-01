@@ -5,11 +5,11 @@ import (
 	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/syhlion/gopusher/cmd"
+	"github.com/syhlion/gusher/cmd"
 )
 
 const (
-	APP_VER = "0.4.3"
+	APP_VER = "0.4.4"
 )
 
 func init() {
@@ -20,7 +20,7 @@ func init() {
 func main() {
 
 	gopusher := cli.NewApp()
-	gopusher.Name = "gopusher"
+	gopusher.Name = "gusher"
 	gopusher.Version = APP_VER
 	gopusher.Commands = []cli.Command{
 		cmd.CmdStart,

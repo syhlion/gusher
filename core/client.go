@@ -1,9 +1,10 @@
 package core
 
 import (
-	"github.com/gorilla/websocket"
-	"github.com/syhlion/gopusher/module/log"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/syhlion/gusher/module/log"
 )
 
 const (

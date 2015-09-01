@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gopusher/model"
-	"github.com/syhlion/gopusher/module/log"
+	"github.com/syhlion/gusher/model"
+	"github.com/syhlion/gusher/module/log"
 )
 
 func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {

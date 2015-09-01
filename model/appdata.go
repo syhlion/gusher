@@ -2,11 +2,12 @@ package model
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/syhlion/go-common"
-	"github.com/syhlion/gopusher/module/log"
 	"strings"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/syhlion/go-common"
+	"github.com/syhlion/gusher/module/log"
 )
 
 var (

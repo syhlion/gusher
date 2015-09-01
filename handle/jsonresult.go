@@ -1,7 +1,7 @@
 package handle
 
 import (
-	"github.com/syhlion/gopusher/model"
+	"github.com/syhlion/gusher/model"
 )
 
 type PushResult struct {

@@ -2,18 +2,19 @@ package cmd
 
 import (
 	"database/sql"
-	"github.com/Sirupsen/logrus"
-	"github.com/codegangsta/cli"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/syhlion/gopusher/core"
-	"github.com/syhlion/gopusher/model"
-	"github.com/syhlion/gopusher/module/config"
-	"github.com/syhlion/gopusher/module/log"
-	"github.com/syhlion/gopusher/module/requestworker"
-	"github.com/syhlion/gopusher/route"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/Sirupsen/logrus"
+	"github.com/codegangsta/cli"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/syhlion/gusher/core"
+	"github.com/syhlion/gusher/model"
+	"github.com/syhlion/gusher/module/config"
+	"github.com/syhlion/gusher/module/log"
+	"github.com/syhlion/gusher/module/requestworker"
+	"github.com/syhlion/gusher/route"
 )
 
 var CmdStart = cli.Command{

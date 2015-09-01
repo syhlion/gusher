@@ -5,8 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/syhlion/gopusher/core"
-	"github.com/syhlion/gopusher/module/log"
+	"github.com/syhlion/gusher/core"
+	"github.com/syhlion/gusher/module/log"
 )
 
 var upgrader = websocket.Upgrader{
