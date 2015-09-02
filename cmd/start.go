@@ -55,7 +55,7 @@ func start(c *cli.Context) {
 	logger.Formatter = logformat
 
 	conf := config.GetConfig(c.String("conf"))
-	db, err := DBinit(conf.SqlDir)
+	db, err := DBinit(conf.SqlFile)
 	if err != nil {
 		log.Logger.Fatal(err)
 	}
@@ -102,8 +102,8 @@ func start(c *cli.Context) {
 	}()
 
 	//init log print
-	if conf.LogDir != "console" {
-		if file, err := os.OpenFile(conf.LogDir, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
+	if conf.LogFile != "console" {
+		if file, err := os.OpenFile(conf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
 			log.Logger.Out = file
 		}

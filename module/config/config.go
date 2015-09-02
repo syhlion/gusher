@@ -11,9 +11,9 @@ type Config struct {
 	AuthAccount  string `json:"auth_account"`
 	AuthPassword string `json:"auth_password"`
 	Environment  string `json:"environment"`
-	LogDir       string `json:"logdir"`
+	LogFile      string `json:"logfile"`
 	Listen       string `json:"listen"`
-	SqlDir       string `json:"sqldir"`
+	SqlFile      string `json:"sqlfile"`
 	MaxWaitHook  int    `json:"max_wait_hook"`
 }
 

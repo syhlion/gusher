@@ -32,10 +32,10 @@ Param | Type | Default|Dircetions
 {
         "auth_account":"account", //Super Admin 
         "auth_password":"password",
-        "environment":"DEBUG",
-        "logdir":"./", // "console" or "/homs/user/x.log"
+        "environment":"DEBUG", // DEBUG || DEVELOPMENT || PRODUCATION
+        "logfile":"./", // "console" or "/homs/user/x.log"
         "listen":":8001",
-        "sqldir":"./appdata.sqlite",
+        "sqlfile":"./appdata.sqlite",
         "max_wait_hook":10
 }
                         
