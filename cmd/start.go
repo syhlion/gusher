@@ -6,13 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/syhlion/gusher/core"
 	"github.com/syhlion/gusher/model"
 	"github.com/syhlion/gusher/module/config"
-	"github.com/syhlion/gusher/module/log"
 	"github.com/syhlion/gusher/module/requestworker"
 	"github.com/syhlion/gusher/route"
 )
@@ -50,14 +49,13 @@ func DBinit(sqlDir string) (db *sql.DB, err error) {
 //Server執行動作
 func start(c *cli.Context) {
 
-	logger := log.Logger
-	logformat := &logrus.TextFormatter{FullTimestamp: true}
-	logger.Formatter = logformat
+	logformat := &log.TextFormatter{FullTimestamp: true}
+	log.SetFormatter(logformat)
 
 	conf := config.GetConfig(c.String("conf"))
 	db, err := DBinit(conf.SqlFile)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	//init core
@@ -82,35 +80,35 @@ func start(c *cli.Context) {
 	//init router
 	r := route.Router(appdata, collection, conf, worker)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	//init env
-	env := func() logrus.Level {
+	env := func() log.Level {
 		switch conf.Environment {
 		case "PRODUCTION":
-			return logrus.WarnLevel
+			return log.WarnLevel
 			break
 		case "DEVELOPMENT":
-			return logrus.InfoLevel
+			return log.InfoLevel
 			break
 		case "DEBUG":
-			return logrus.DebugLevel
+			return log.DebugLevel
 			break
 		}
-		return logrus.InfoLevel
+		return log.InfoLevel
 	}()
 
 	//init log print
 	if conf.LogFile != "console" {
 		if file, err := os.OpenFile(conf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
-			log.Logger.Out = file
+			log.SetOutput(file)
 		}
 	}
-	log.Logger.Level = env
-	log.Logger.Info("Server Start ", conf.Listen)
+	log.SetLevel(env)
+	log.Info("Server Start ", conf.Listen)
 
 	//server start
-	log.Logger.Fatal(http.ListenAndServe(conf.Listen, r))
+	log.Fatal(http.ListenAndServe(conf.Listen, r))
 }

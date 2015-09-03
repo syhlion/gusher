@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/syhlion/gusher/module/log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type Collection struct {
@@ -30,7 +30,7 @@ func (c *Collection) Join(app_key string) (room *App, err error) {
 		c.apps[app_key] = NewApp(app_key)
 		go c.apps[app_key].run()
 	}
-	log.Logger.Debug("Join ", app_key)
+	log.Debug("Join ", app_key)
 	room = c.apps[app_key]
 
 	return
@@ -43,7 +43,7 @@ func (c *Collection) Get(app_key string) (room *App, err error) {
 		room = val
 	} else {
 		err = &ErrorCollection{"No User In the App"}
-		log.Logger.Debug(app_key, " ", err)
+		log.Debug(app_key, " ", err)
 	}
 	return
 
@@ -59,7 +59,7 @@ func (c *Collection) Run() {
 			c.lock.Lock()
 			for app_key, app := range c.apps {
 				if len(app.Connections) == 0 {
-					log.Logger.Debug("clear empty app", app_key)
+					log.Debug("clear empty app", app_key)
 					delete(c.apps, app_key)
 				}
 			}

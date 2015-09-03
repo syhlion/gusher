@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/syhlion/gusher/model"
 	"github.com/syhlion/gusher/module/config"
-	"github.com/syhlion/gusher/module/log"
 	"github.com/syhlion/gusher/module/requestworker"
 )
 
@@ -32,7 +32,7 @@ func (m *Middleware) Use(h http.HandlerFunc, middleware ...func(http.HandlerFunc
 
 func (m *Middleware) LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Logger.Info(r.RemoteAddr, " ", r.Method, " ", r.RequestURI, " ", r.Header.Get("Authorization"))
+		log.Info(r.RemoteAddr, " ", r.Method, " ", r.RequestURI, " ", r.Header.Get("Authorization"))
 		h.ServeHTTP(w, r)
 
 	}
@@ -58,7 +58,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		//fill in connect_hook bug url parse error
 		u, err := url.Parse(hook_url)
 		if err != nil {
-			log.Logger.Warn(r.RemoteAddr, " ", params["app_key"], " ", err.Error())
+			log.Warn(r.RemoteAddr, " ", params["app_key"], " ", err.Error())
 			http.Error(w, "hook url error", 404)
 			return
 		}
@@ -68,7 +68,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		v.Add("token", token)
 		req, err := http.NewRequest("POST", u.String(), bytes.NewBufferString(v.Encode()))
 		if err != nil {
-			log.Logger.Warn(r.RemoteAddr, " ", err.Error())
+			log.Warn(r.RemoteAddr, " ", err.Error())
 			http.Error(w, err.Error(), 404)
 			return
 		}
@@ -81,7 +81,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		m.Worker.JobQuene <- job
 		rs := <-job.Result
 		if rs.Err != nil {
-			log.Logger.Warn(r.RemoteAddr, " ", rs.Err.Error())
+			log.Warn(r.RemoteAddr, " ", rs.Err.Error())
 			http.Error(w, rs.Err.Error(), 404)
 			return
 		}
@@ -93,7 +93,7 @@ func (m *Middleware) AppKeyVerity(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		if !m.AppData.IsExist(params["app_key"]) {
-			log.Logger.Warn(r.RemoteAddr, " ", params["app_key"]+" app_key does not exist")
+			log.Warn(r.RemoteAddr, " ", params["app_key"]+" app_key does not exist")
 			http.Error(w, "app_key does not exist", 404)
 			return
 		}
@@ -107,7 +107,7 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		w.Header().Set("WWW-Authenicate", `Basic realm="Restricted`)
 		s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 		if len(s) != 2 {
-			log.Logger.Warn(r.RemoteAddr, "auth Error")
+			log.Warn(r.RemoteAddr, "auth Error")
 			http.Error(w, "Not authorized", 401)
 			return
 		}
@@ -119,7 +119,7 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		}
 		pair := strings.SplitN(string(b), ":", 2)
 		if len(pair) != 2 {
-			log.Logger.Warn(r.RemoteAddr, " auth param empty")
+			log.Warn(r.RemoteAddr, " auth param empty")
 			http.Error(w, "Not authorized", 401)
 			return
 		}
@@ -139,7 +139,7 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		if params["app_key"] != "" {
 			data, err := m.AppData.Get(params["app_key"])
 			if err != nil {
-				log.Logger.Warn(r.RemoteAddr, " ", err.Error())
+				log.Warn(r.RemoteAddr, " ", err.Error())
 				http.Error(w, err.Error(), 401)
 				return
 			}
@@ -148,7 +148,7 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if pair[0] != account || pair[1] != password {
-			log.Logger.Warn(r.RemoteAddr, " auth error "+pair[0]+" "+pair[1])
+			log.Warn(r.RemoteAddr, " auth error "+pair[0]+" "+pair[1])
 			http.Error(w, "Not authorized", 401)
 			return
 		}
