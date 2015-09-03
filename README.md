@@ -1,4 +1,4 @@
-# GoPusher
+# Gusher
 
 [Pusher](https://pusher.com/docs) implment server-side by golang
 
@@ -11,8 +11,8 @@
 Install from source
 
 ```
-$ go get github.com/syhlion/gopusher
-$ gopusher -h
+$ go get github.com/syhlion/gusher
+$ gusher -h
 
 ```
 
