@@ -3,8 +3,8 @@ package core
 import (
 	"time"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
-	"github.com/syhlion/gusher/module/log"
 )
 
 const (
@@ -56,7 +56,7 @@ func (c *Client) ReadPump() {
 func (c *Client) WritePump() {
 	t := time.NewTicker(pingPeriod)
 	defer func() {
-		log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " dissconect")
+		log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " dissconect")
 		c.ws.Close()
 		c.App.Unregister <- c
 		t.Stop()
@@ -66,17 +66,17 @@ func (c *Client) WritePump() {
 		case msg, ok := <-c.Send:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
-				log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Channel Error")
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Channel Error")
 				return
 			}
 			if err := c.write(websocket.TextMessage, msg); err != nil {
-				log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Message Error", err)
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send Message Error", err)
 				return
 			}
 
 		case <-t.C:
 			if err := c.write(websocket.PingMessage, []byte{}); err != nil {
-				log.Logger.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " send PingMessage Error")
+				log.Debug(c.ws.RemoteAddr().String(), " ", c.Tag, " Send PingMessage Error")
 				return
 			}
 

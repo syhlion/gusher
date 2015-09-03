@@ -3,7 +3,7 @@ package core
 import (
 	"sync"
 
-	"github.com/syhlion/gusher/module/log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type App struct {
@@ -51,7 +51,7 @@ func (a *App) run() {
 				break
 			}
 		case message := <-a.Boradcast:
-			log.Logger.Debug(a.key, " Boradcast start")
+			log.Debug(a.key, " Boradcast start")
 			for client := range a.Connections {
 				client.Send <- message
 			}

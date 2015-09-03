@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/syhlion/gusher/module/log"
+	log "github.com/Sirupsen/logrus"
 )
 
 type Config struct {
@@ -21,13 +21,13 @@ func GetConfig(configDir string) *Config {
 	file, err := os.OpenFile(configDir, os.O_RDONLY, 0655)
 	defer file.Close()
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Fatal(err)
 	}
 	decoder := json.NewDecoder(file)
 	config := Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
-		log.Logger.Fatal(err)
+		log.Fatal(err)
 	}
 
 	return &config
