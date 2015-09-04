@@ -24,6 +24,7 @@ func main() {
 	gopusher.Version = APP_VER
 	gopusher.Commands = []cli.Command{
 		cmd.CmdStart,
+		cmd.InitStart,
 	}
 
 	gopusher.Run(os.Args)
