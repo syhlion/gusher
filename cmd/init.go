@@ -17,62 +17,64 @@ var InitStart = cli.Command{
 
 func initStart(c *cli.Context) {
 	conf := config.Config{}
-listen:
-	fmt.Print("Please Input Listen Port (ex ':8001'):")
-	fmt.Scan(&conf.Listen)
+	fmt.Print("Please Input Listen Port (Default: ':8001'):")
+	fmt.Scanf("%v\n", &conf.Listen)
 	if conf.Listen == "" {
-		goto listen
+		conf.Listen = ":8001"
 	}
-auth_account:
-	fmt.Print("Please Input Admin Auth Account:")
-	fmt.Scan(&conf.AuthAccount)
+	fmt.Println("Input: ", conf.Listen)
+
+	fmt.Print("Please Input Admin Auth Account (Default: 'account'):")
+	fmt.Scanf("%v\n", &conf.AuthAccount)
 	if conf.AuthAccount == "" {
-		goto auth_account
+		conf.AuthAccount = "account"
 	}
+	fmt.Println("Input: ", conf.AuthAccount)
 
-auth_password:
-	fmt.Print("Please Input Admin Auth Password:")
-	fmt.Scan(&conf.AuthPassword)
+	fmt.Print("Please Input Admin Auth Password (Default: 'password'):")
+	fmt.Scanf("%v\n", &conf.AuthPassword)
 	if conf.AuthPassword == "" {
-		goto auth_password
+		conf.AuthPassword = "password"
 	}
+	fmt.Println("Input: ", conf.AuthPassword)
 
-sql_file:
-	fmt.Print("Please Input SQL File Location (ex: ./appdata.sqlite):")
-	fmt.Scan(&conf.SqlFile)
+	fmt.Print("Please Input SQL File Location (Default: './appdata.sqlite'):")
+	fmt.Scanf("%v\n", &conf.SqlFile)
 	if conf.SqlFile == "" {
-		goto sql_file
+		conf.SqlFile = "./appdata.sqlite"
 	}
+	fmt.Println("Input: ", conf.SqlFile)
 
-log_file:
-	fmt.Print("Please Input Log File Location OR Console Log (ex: console || ./gusher.log):")
-	fmt.Scan(&conf.LogFile)
+	fmt.Print("Please Input Log File Location OR Console Log (Default: 'console' Option: console || ./gusher.log):")
+	fmt.Scanf("%v\n", &conf.LogFile)
 	if conf.LogFile == "" {
-		goto log_file
+		conf.LogFile = "console"
 	}
+	fmt.Println("Input: ", conf.LogFile)
 
-env:
-	fmt.Print("Please Input Environment (DEBUG || DEVELOPMENT || PRODUCATION):")
-	fmt.Scan(&conf.Environment)
+	fmt.Print("Please Input Environment (Default: 'DEBUG' Option: DEBUG || DEVELOPMENT || PRODUCATION):")
+	fmt.Scanf("%v\n", &conf.Environment)
 	if conf.Environment == "" {
-		goto env
+		conf.Environment = "DEBUG"
 	}
 
 	if !(conf.Environment == "DEBUG" || conf.Environment == "DEVELOPMENT" || conf.Environment == "PRODUCATION") {
-		goto env
+		conf.Environment = "DEBUG"
 	}
+	fmt.Println("Input: ", conf.Environment)
 
-max_wait_hook:
-	fmt.Print("Please Input the Nnumber WEB HOOK Request BOT (ex: 100):")
+	fmt.Print("Please Input the Nnumber WEB HOOK Request BOT (Default: 100):")
 	var num string
-	fmt.Scan(&num)
+	fmt.Scanf("%v\n", &num)
 	n, err := strconv.Atoi(num)
 	if err != nil {
-		goto max_wait_hook
+		conf.MaxWaitHook = 100
+	} else {
+		conf.MaxWaitHook = n
 	}
-	conf.MaxWaitHook = n
+	fmt.Println("Input: ", conf.MaxWaitHook)
 
-	fmt.Printf("%+v\n", conf)
+	fmt.Printf("Result Json: %+v\n", conf)
 	err = config.Write(conf)
 	if err != nil {
 		log.Fatal(err)
