@@ -17,6 +17,12 @@ var InitStart = cli.Command{
 
 func initStart(c *cli.Context) {
 	conf := config.Config{}
+listen:
+	fmt.Print("Please Input Listen Port (ex ':8001'):")
+	fmt.Scan(&conf.Listen)
+	if conf.Listen == "" {
+		goto listen
+	}
 auth_account:
 	fmt.Print("Please Input Admin Auth Account:")
 	fmt.Scan(&conf.AuthAccount)

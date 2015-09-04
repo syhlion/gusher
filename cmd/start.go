@@ -24,7 +24,7 @@ var CmdStart = cli.Command{
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "conf, c",
-			Value: "./default.json",
+			Value: "./config.json",
 			Usage: "Input default.json",
 		},
 	},
@@ -52,7 +52,7 @@ func start(c *cli.Context) {
 	logformat := &log.TextFormatter{FullTimestamp: true}
 	log.SetFormatter(logformat)
 
-	conf := config.GetConfig(c.String("conf"))
+	conf := config.Get(c.String("conf"))
 	db, err := DBinit(conf.SqlFile)
 	if err != nil {
 		log.Fatal(err)

@@ -1,9 +1,0 @@
-{
-    "auth_account":"account",
-    "auth_password":"password",
-    "environment":"DEBUG",    
-    "logfile":"console", 
-    "listen":":8001",
-    "sqlfile":"./appdata.sqlite",
-    "max_wait_hook":10
-}
