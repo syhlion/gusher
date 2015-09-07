@@ -12,13 +12,27 @@ Install from source
 
 ```
 $ go get github.com/syhlion/gusher
-$ gusher -h
-
 ```
 
-Install from binary
+The first time you use this service, please execute this command:
+
+```
+$ gusher init
+```
+
+After generating config.json, please excute this command:
+
+```
+$ gusher start
+```
 
 ## Command
+
+* init
+
+Follow instructions.
+
+This command can auto generate config.json.
 
 * start
 
@@ -28,10 +42,12 @@ Param | Type | Default|Dircetions
 
 ## Config  
 
+
+Default generate
 ```
 {
         "auth_account":"account", //Super Admin 
-        "auth_password":"password",
+        "auth_password":"password", //Bcrypt Encoding 
         "environment":"DEBUG", // DEBUG || DEVELOPMENT || PRODUCATION
         "logfile":"./", // "console" or "/homs/user/x.log"
         "listen":":8001",
@@ -65,7 +81,7 @@ connect_hook | string | You can take this verification [webhook](https://github.
 {
     "app_name":"test",
     "auth_account":"app_admin",
-    "auth_password":"password",
+    "auth_password":"password", //Bcrypt Encoding
     "app_key":"abcdefghijklmnop",
     "connect_hook":"http://localhost/vaildlogin"
     "request_ip":"127.0.0.1:77777"
