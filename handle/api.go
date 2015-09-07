@@ -2,6 +2,7 @@ package handle
 
 import (
 	"encoding/json"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -144,6 +145,16 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "app_name || request_op empty", 404)
 		return
 	}
+
+	//bcrypt encoding
+	hash_password, err := bcrypt.GenerateFromPassword([]byte(auth_account+auth_password), 5)
+	if err != nil {
+		log.Warn(r.RemoteAddr, " ", app_name, " ", auth_password, " hash error")
+		http.Error(w, "hash error", 404)
+		return
+	}
+	auth_password = string(hash_password)
+
 	app_key, err := h.AppData.Register(app_name, auth_account, auth_password, connect_hook, request_ip)
 
 	if err != nil {

@@ -17,11 +17,12 @@ type Config struct {
 	MaxWaitHook  int    `json:"max_wait_hook"`
 }
 
-func GetConfig(configDir string) *Config {
-	file, err := os.OpenFile(configDir, os.O_RDONLY, 0655)
+func Get(configfile string) *Config {
+	file, err := os.OpenFile(configfile, os.O_RDONLY, 0655)
 	defer file.Close()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
+		log.Fatal("Please exec ./gusher init")
 	}
 	decoder := json.NewDecoder(file)
 	config := Config{}
@@ -31,4 +32,18 @@ func GetConfig(configDir string) *Config {
 	}
 
 	return &config
+}
+
+func Write(config Config) (err error) {
+	os.Remove("./config.json")
+	file, err := os.OpenFile("./config.json", os.O_CREATE|os.O_RDWR, 0600)
+	defer file.Close()
+	if err != nil {
+		panic(err)
+		return
+	}
+	encoder := json.NewEncoder(file)
+	err = encoder.Encode(config)
+	return
+
 }

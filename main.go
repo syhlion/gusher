@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	APP_VER = "0.4.6"
+	APP_VER = "0.5.0"
 )
 
 func init() {
@@ -24,6 +24,7 @@ func main() {
 	gopusher.Version = APP_VER
 	gopusher.Commands = []cli.Command{
 		cmd.CmdStart,
+		cmd.InitStart,
 	}
 
 	gopusher.Run(os.Args)
