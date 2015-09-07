@@ -13,6 +13,7 @@ import (
 	"github.com/syhlion/gusher/model"
 	"github.com/syhlion/gusher/module/config"
 	"github.com/syhlion/gusher/module/requestworker"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Middleware struct {
@@ -129,9 +130,8 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		var password string
 
 		//super admin 可通過任何api
-		if pair[0] == m.Config.AuthAccount && pair[1] == m.Config.AuthPassword {
-			account = m.Config.AuthAccount
-			password = m.Config.AuthPassword
+
+		if pair[0] == m.Config.AuthAccount && bcrypt.CompareHashAndPassword([]byte(m.Config.AuthPassword), []byte(pair[0]+pair[1])) == nil {
 			h.ServeHTTP(w, r)
 			return
 		}
@@ -147,7 +147,7 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 			password = data.AuthPassword
 		}
 
-		if pair[0] != account || pair[1] != password {
+		if pair[0] != account || bcrypt.CompareHashAndPassword([]byte(password), []byte(pair[0]+pair[1])) != nil {
 			log.Warn(r.RemoteAddr, " auth error "+pair[0]+" "+pair[1])
 			http.Error(w, "Not authorized", 401)
 			return
