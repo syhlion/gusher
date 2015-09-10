@@ -24,15 +24,15 @@ func Router(appdata *model.AppData, collection *core.Collection, config *config.
 	router.HandleFunc("/api/push/{app_key}", middleware.Use(handler.Push, middleware.AppKeyVerity, middleware.BasicAuth, middleware.LogHttpRequest)).Methods("POST")
 
 	//register user
-	router.HandleFunc("/api/register", middleware.Use(handler.Register, middleware.BasicAuth, middleware.LogHttpRequest)).Methods("POST")
+	router.HandleFunc("/api/register", middleware.Use(handler.Register, middleware.BasicAuth, middleware.AllowAccessApiIP, middleware.LogHttpRequest)).Methods("POST")
 
 	//unregister
-	router.HandleFunc("/api/{app_key}/unregister", middleware.Use(handler.Unregister, middleware.AppKeyVerity, middleware.BasicAuth, middleware.LogHttpRequest)).Methods("DELETE")
+	router.HandleFunc("/api/{app_key}/unregister", middleware.Use(handler.Unregister, middleware.AppKeyVerity, middleware.BasicAuth, middleware.AllowAccessApiIP, middleware.LogHttpRequest)).Methods("DELETE")
 
 	//list app
-	router.HandleFunc("/api/app-list/{limit:[0-9]+}/{page:[0-9]+}", middleware.Use(handler.AppList, middleware.BasicAuth, middleware.LogHttpRequest)).Methods("GET")
+	router.HandleFunc("/api/app-list/{limit:[0-9]+}/{page:[0-9]+}", middleware.Use(handler.AppList, middleware.BasicAuth, middleware.AllowAccessApiIP, middleware.LogHttpRequest)).Methods("GET")
 
 	//list how many client
-	router.HandleFunc("/api/{app_key}/listonlineuser/{limit:[0-9]+}/{page:[0-9]+}", middleware.Use(handler.ListClient, middleware.AppKeyVerity, middleware.BasicAuth, middleware.LogHttpRequest)).Methods("GET")
+	router.HandleFunc("/api/{app_key}/listonlineuser/{limit:[0-9]+}/{page:[0-9]+}", middleware.Use(handler.ListClient, middleware.AppKeyVerity, middleware.BasicAuth, middleware.AllowAccessApiIP, middleware.LogHttpRequest)).Methods("GET")
 	return
 }

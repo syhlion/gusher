@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,24 @@ func (m *Middleware) Use(h http.HandlerFunc, middleware ...func(http.HandlerFunc
 	}
 
 	return h
+}
+
+func (m *Middleware) AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ips := strings.Split(r.RemoteAddr, ":")
+		for _, allow := range m.Config.AllowAccessApiIP {
+			if vailed, err := regexp.Compile(allow); err == nil {
+				if vailed.MatchString(ips[0]) {
+					h.ServeHTTP(w, r)
+					return
+
+				}
+			}
+		}
+		log.Warn(r.RemoteAddr, " IP DENY")
+		http.Error(w, "IP DENY", 404)
+		return
+	}
 }
 
 func (m *Middleware) LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
