@@ -88,6 +88,18 @@ func initStart(c *cli.Context) {
 	}
 	fmt.Println("Input: ", conf.MaxWaitHook)
 
+	//Set AllowAccessApiIP
+	fmt.Print("Please Input Allow Access Api IP(Default: '' <- it means allow all Ex: 192.168  or 127.0.0.1 :")
+	var ip string
+	var ips []string
+	fmt.Scanf("%v\n", &ip)
+	if ip == "" {
+		ip = ""
+	}
+	ips = append(ips, ip)
+	conf.AllowAccessApiIP = ips
+
+	fmt.Println("Input: ", ips)
 	fmt.Printf("Result Json: %+v\n", conf)
 	err = config.Write(conf)
 	if err != nil {
