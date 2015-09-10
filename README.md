@@ -52,7 +52,8 @@ Default generate
         "logfile":"./", // "console" or "/homs/user/x.log"
         "listen":":8001",
         "sqlfile":"./appdata.sqlite",
-        "max_wait_hook":10
+        "max_wait_hook":10,
+        "allow_access_api_ip":[""]//IP White list Ex ["192.168","127.0"] Does not support ipv6 
 }
                         
 ```
