@@ -71,7 +71,7 @@ All api need http basic Auth, Super Admin can access all api
 
 Name|Type|Directions
 ---|---|---
-app_name | string | a app_name
+app_key | string | a unique app_key. Require
 auth_account | string | app admin basic auth account. Require
 auth_password | string | app admin basic auth password. Require
 connect_hook | string | You can take this verification [webhook](https://github.com/syhlion/gopusher/#web-hook). Optinal
@@ -80,10 +80,9 @@ connect_hook | string | You can take this verification [webhook](https://github.
 
 ```
 {
-    "app_name":"test",
+    "app_key":"test",
     "auth_account":"app_admin",
     "auth_password":"password", //Bcrypt Encoding
-    "app_key":"abcdefghijklmnop",
     "connect_hook":"http://localhost/vaildlogin"
     "request_ip":"127.0.0.1:77777"
 }
@@ -117,7 +116,6 @@ connect_hook | string | You can take this verification [webhook](https://github.
     [
         {
             "app_key":"db15759925b279b4b037d7a4e1f92b0f",
-            "app_name":"test",
             "auth_account":"scott",
             "auth_password":"760804",
             "connect_hook":"http://localhost/vaildlogin"
@@ -127,7 +125,6 @@ connect_hook | string | You can take this verification [webhook](https://github.
         },
         {
             "app_key":"56f08a519be877060fb4a4ea2a75aad8",
-            "app_name":"test2",
             "auth_account":"scott",
             "auth_password":"760804",
             "connect_hook":"http://localhost/vaildlogin"
