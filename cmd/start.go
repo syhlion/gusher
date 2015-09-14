@@ -37,7 +37,7 @@ func DBinit(sqlDir string) (db *sql.DB, err error) {
 	}
 
 	sqlStmt := `
-	create table if not exists appdata (app_name,auth_account,auth_password,connect_hook,request_ip,app_key PRIMARY KEY,timestamp,date)
+	create table if not exists appdata (app_key PRIMARY KEY,auth_account,auth_password,connect_hook,request_ip,timestamp,date)
 	`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {

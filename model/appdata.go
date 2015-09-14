@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -16,7 +15,6 @@ var (
 
 type AppDataResult struct {
 	AppKey       string `json:"app_key"`
-	AppName      string `json:"app_name"`
 	AuthAccount  string `json:"auth_account"`
 	AuthPassword string `json:"auth_password"`
 	ConnectHook  string `json:"connect_hook"`
@@ -93,7 +91,7 @@ func (d *AppData) Get(app_key string) (r AppDataResult, err error) {
 		return
 	}
 	for rows.Next() {
-		err = rows.Scan(&r.AppName, &r.AuthAccount, &r.AuthPassword, &r.ConnectHook, &r.RequestIP, &r.AppKey, &r.Timestamp, &r.Date)
+		err = rows.Scan(&r.AppKey, &r.AuthAccount, &r.AuthPassword, &r.ConnectHook, &r.RequestIP, &r.Timestamp, &r.Date)
 		if err != nil {
 			log.Debug(err)
 			return
@@ -112,7 +110,7 @@ func (d *AppData) GetAll() (r []AppDataResult, err error) {
 	}
 	var apps AppDataResult
 	for rows.Next() {
-		err = rows.Scan(&apps.AppName, &apps.AuthAccount, &apps.AuthPassword, &apps.ConnectHook, &apps.RequestIP, &apps.AppKey, &apps.Timestamp, &apps.Date)
+		err = rows.Scan(&apps.AppKey, &apps.AuthAccount, &apps.AuthPassword, &apps.ConnectHook, &apps.RequestIP, &apps.Timestamp, &apps.Date)
 		if err != nil {
 			log.Debug(err)
 			return
@@ -123,8 +121,8 @@ func (d *AppData) GetAll() (r []AppDataResult, err error) {
 
 }
 
-func (d *AppData) Register(app_name string, auth_account string, auth_password string, connect_hook string, request_ip string) (app_key string, err error) {
-	cmd := "INSERT INTO appdata(app_name,auth_account,auth_password,connect_hook,request_ip,app_key,timestamp,date) VALUES (?,?,?,?,?,?,?,?)"
+func (d *AppData) Register(app_key string, auth_account string, auth_password string, connect_hook string, request_ip string) (err error) {
+	cmd := "INSERT INTO appdata(app_key,auth_account,auth_password,connect_hook,request_ip,timestamp,date) VALUES (?,?,?,?,?,?,?)"
 	tx, err := d.db.Begin()
 	if err != nil {
 		log.Debug(err)
@@ -132,24 +130,23 @@ func (d *AppData) Register(app_name string, auth_account string, auth_password s
 	}
 	stmt, err := tx.Prepare(cmd)
 	if err != nil {
-		log.Debug(app_name, " ", request_ip, " ", err)
+		log.Debug(app_key, " ", request_ip, " ", err)
 		return
 	}
 	date := time.Now().Format("2006/01/02 15:04:05")
 
-	seeds := []string{app_name, auth_account, auth_password, request_ip, common.TimeToString(), date}
-	seed := strings.Join(seeds, ",")
-	app_key = common.EncodeMd5(seed)
-
-	log.Info(app_key)
-	_, err = stmt.Exec(app_name, auth_account, auth_password, connect_hook, request_ip, app_key, common.Time(), date)
+	_, err = stmt.Exec(app_key, auth_account, auth_password, connect_hook, request_ip, common.Time(), date)
 	if err != nil {
-		log.Debug(app_name, " ", request_ip, " ", err)
+		log.Debug(app_key, " ", request_ip, " ", err)
+		tx.Rollback()
+		stmt.Close()
 		return
 	}
 	err = tx.Commit()
 	if err != nil {
-		log.Debug(app_name, " ", request_ip, " ", err)
+		log.Debug(app_key, " ", request_ip, " ", err)
+		tx.Rollback()
+		stmt.Close()
 		return
 	}
 	defer stmt.Close()

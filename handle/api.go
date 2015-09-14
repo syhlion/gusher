@@ -134,13 +134,13 @@ func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
 
 //註冊
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	app_name := r.FormValue("app_name")
+	app_key := r.FormValue("app_key")
 	auth_password := r.FormValue("auth_password")
 	auth_account := r.FormValue("auth_account")
 	connect_hook := r.FormValue("connect_hook")
 	request_ip := r.RemoteAddr
 
-	if app_name == "" || request_ip == "" || auth_password == "" || auth_account == "" {
+	if app_key == "" || request_ip == "" || auth_password == "" || auth_account == "" {
 		log.Warn(r.RemoteAddr, " ", "app_name || request_ip empty")
 		http.Error(w, "app_name || request_op empty", 404)
 		return
@@ -149,22 +149,21 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	//bcrypt encoding
 	hash_password, err := bcrypt.GenerateFromPassword([]byte(auth_account+auth_password), 5)
 	if err != nil {
-		log.Warn(r.RemoteAddr, " ", app_name, " ", auth_password, " hash error")
+		log.Warn(r.RemoteAddr, " ", app_key, " ", auth_password, " hash error")
 		http.Error(w, "hash error", 404)
 		return
 	}
 	auth_password = string(hash_password)
 
-	app_key, err := h.AppData.Register(app_name, auth_account, auth_password, connect_hook, request_ip)
+	err = h.AppData.Register(app_key, auth_account, auth_password, connect_hook, request_ip)
 
 	if err != nil {
 		log.Warn(r.RemoteAddr, " ", err)
-		http.Error(w, "Insert Error", 500)
+		http.Error(w, "app_key repeat", 500)
 		return
 	}
 
 	result := AppResult{
-		AppName:     app_name,
 		AppKey:      app_key,
 		ConnectHook: connect_hook,
 		RequestIP:   request_ip,
