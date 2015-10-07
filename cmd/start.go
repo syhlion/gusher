@@ -110,5 +110,11 @@ func start(c *cli.Context) {
 	log.Info("Server Start ", conf.Listen)
 
 	//server start
-	log.Fatal(http.ListenAndServe(conf.Listen, r))
+	srv := &http.Server{
+		Addr:         conf.Listen,
+		Handler:      r,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+	log.Fatal(srv.ListenAndServe())
 }
