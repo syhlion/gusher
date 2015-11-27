@@ -126,6 +126,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		}
 		m.Worker.JobQuene <- job
 		rs := <-result
+		close(result)
 		if v, ok := rs["error"]; ok {
 			log.Warn(r.RemoteAddr, " ", v)
 			http.Error(w, v, 404)
