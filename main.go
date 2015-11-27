@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	APP_VER = "0.8.0"
+	APP_VER = "0.8.1"
 )
 
 func init() {

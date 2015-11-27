@@ -104,6 +104,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 			b, err := ioutil.ReadAll(resp.Body)
+			defer resp.Body.Close()
 			if err != nil {
 				rs["error"] = err.Error()
 				result <- rs
@@ -111,7 +112,7 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 			}
 			ret := string(b)
 			if ret != params["user_tag"] {
-				rs["error"] = ret
+				rs["error"] = "Error user_tag " + params["user_tag"] + ", response user_tag " + ret
 				result <- rs
 				return
 			}
@@ -125,7 +126,6 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		}
 		m.Worker.JobQuene <- job
 		rs := <-result
-		print("test")
 		if v, ok := rs["error"]; ok {
 			log.Warn(r.RemoteAddr, " ", v)
 			http.Error(w, v, 404)
