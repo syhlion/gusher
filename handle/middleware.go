@@ -3,6 +3,7 @@ package handle
 import (
 	"bytes"
 	"encoding/base64"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,14 +14,14 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/syhlion/gusher/model"
 	"github.com/syhlion/gusher/module/config"
-	"github.com/syhlion/gusher/module/requestworker"
+	"github.com/syhlion/requestwork"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type Middleware struct {
 	AppData *model.AppData
 	Config  *config.Config
-	Worker  *requestworker.Worker
+	Worker  *requestwork.Worker
 }
 
 //Middleware use
@@ -94,15 +95,40 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		}
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		req.Header.Add("Content-Length", strconv.Itoa(len(v.Encode())))
-		job := &requestworker.Job{
-			Resq:   req,
-			Result: make(chan requestworker.Result),
+		result := make(chan map[string]string)
+		callback := func(resp *http.Response, err error) {
+			rs := make(map[string]string)
+			if err != nil {
+				rs["error"] = err.Error()
+				result <- rs
+				return
+			}
+			b, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				rs["error"] = err.Error()
+				result <- rs
+				return
+			}
+			ret := string(b)
+			if ret != params["user_tag"] {
+				rs["error"] = ret
+				result <- rs
+				return
+			}
+			rs["scuess"] = ret
+			result <- rs
+
+		}
+		job := &requestwork.Job{
+			Resq:    req,
+			Command: callback,
 		}
 		m.Worker.JobQuene <- job
-		rs := <-job.Result
-		if rs.Err != nil {
-			log.Warn(r.RemoteAddr, " ", rs.Err.Error())
-			http.Error(w, rs.Err.Error(), 404)
+		rs := <-result
+		print("test")
+		if v, ok := rs["error"]; ok {
+			log.Warn(r.RemoteAddr, " ", v)
+			http.Error(w, v, 404)
 			return
 		}
 		h.ServeHTTP(w, r)

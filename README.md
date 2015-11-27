@@ -194,7 +194,7 @@ If it is not,use this:
 
 If you use this, you need to prepare a hook api, to accept http request POST "token"  
 
-If successful at http body output "ok"   
+If successful at http body output "user_tag" eqaul client connet user_tag    
 
 * Param:  
 

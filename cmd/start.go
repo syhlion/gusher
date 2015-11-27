@@ -12,8 +12,8 @@ import (
 	"github.com/syhlion/gusher/core"
 	"github.com/syhlion/gusher/model"
 	"github.com/syhlion/gusher/module/config"
-	"github.com/syhlion/gusher/module/requestworker"
 	"github.com/syhlion/gusher/route"
+	"github.com/syhlion/requestwork"
 )
 
 var CmdStart = cli.Command{
@@ -65,10 +65,10 @@ func start(c *cli.Context) {
 	//init model appdata
 	appdata := model.NewAppData(db)
 
-	//init requestworker
-	worker := &requestworker.Worker{
+	//init requestwork
+	worker := &requestwork.Worker{
 		Threads:  conf.MaxWaitHook,
-		JobQuene: make(chan *requestworker.Job, 1024),
+		JobQuene: make(chan *requestwork.Job, 1024),
 		HttpClient: &http.Client{
 			Timeout: time.Duration(5 * time.Second),
 		},

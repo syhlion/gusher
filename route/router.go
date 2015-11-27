@@ -6,10 +6,10 @@ import (
 	"github.com/syhlion/gusher/handle"
 	"github.com/syhlion/gusher/model"
 	"github.com/syhlion/gusher/module/config"
-	"github.com/syhlion/gusher/module/requestworker"
+	"github.com/syhlion/requestwork"
 )
 
-func Router(appdata *model.AppData, collection *core.Collection, config *config.Config, worker *requestworker.Worker) (router *mux.Router) {
+func Router(appdata *model.AppData, collection *core.Collection, config *config.Config, worker *requestwork.Worker) (router *mux.Router) {
 	router = mux.NewRouter()
 
 	handler := &handle.Handler{appdata, collection}
