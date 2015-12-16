@@ -2,14 +2,13 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gusher/core"
-	"github.com/syhlion/gusher/handle"
-	"github.com/syhlion/gusher/model"
-	"github.com/syhlion/gusher/module/config"
 	"github.com/syhlion/requestwork"
 )
 
-func Router(appdata *model.AppData, collection *core.Collection, config *config.Config, worker *requestwork.Worker) (router *mux.Router) {
+type Handler struct {
+}
+
+func (h *Handler) Router(appdata *model.AppData, collection *core.Collection, config *config.Config, worker *requestwork.Worker) (router *mux.Router) {
 	router = mux.NewRouter()
 
 	handler := &handle.Handler{appdata, collection}
