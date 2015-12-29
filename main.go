@@ -2,19 +2,13 @@ package main
 
 import (
 	"os"
-	"runtime"
 
 	"github.com/codegangsta/cli"
-	"github.com/syhlion/gusher/cmd"
 )
 
 const (
 	APP_VER = "0.8.3"
 )
-
-func init() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-}
 
 //進入點
 func main() {
@@ -23,8 +17,8 @@ func main() {
 	gopusher.Name = "gusher"
 	gopusher.Version = APP_VER
 	gopusher.Commands = []cli.Command{
-		cmd.CmdStart,
-		cmd.InitStart,
+		CmdStart,
+		InitStart,
 	}
 
 	gopusher.Run(os.Args)

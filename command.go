@@ -34,6 +34,9 @@ var (
 		Description: "Init Gusher Server Config",
 		Action:      initStart,
 	}
+	Model     *AppData            = nil
+	ReqWorker *requestwork.Worker = nil
+	Conf      *Config             = nil
 )
 
 func DBinit(sqlDir string) (db *sql.DB, err error) {
@@ -58,34 +61,24 @@ func start(c *cli.Context) {
 	logformat := &log.TextFormatter{FullTimestamp: true}
 	log.SetFormatter(logformat)
 
-	conf := ConfigGet(c.String("conf"))
-	db, err := DBinit(conf.SqlFile)
+	Conf := ConfigGet(c.String("conf"))
+	db, err := DBinit(Conf.SqlFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	appdata := &AppData{db}
+	Model = &AppData{db}
 	//init requestwork
-	worker := &requestwork.Worker{
-		Threads:  conf.MaxWaitHook,
-		JobQuene: make(chan *requestwork.Job, 1024),
-		HttpClient: &http.Client{
-			Timeout: time.Duration(5 * time.Second),
-		},
-	}
-
-	//work start wait
-	go worker.Start()
+	ReqWorker = requestwork.New(&http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}, Conf.MaxWaitHook)
 
 	//init router
-	r := route.Router(appdata, conf, worker)
-	if err != nil {
-		log.Fatal(err)
-	}
+	r := Router()
 
 	//init env
 	env := func() log.Level {
-		switch conf.Environment {
+		switch Conf.Environment {
 		case "PRODUCTION":
 			return log.WarnLevel
 			break
@@ -100,18 +93,18 @@ func start(c *cli.Context) {
 	}()
 
 	//init log print
-	if conf.LogFile != "console" {
-		if file, err := os.OpenFile(conf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
+	if Conf.LogFile != "console" {
+		if file, err := os.OpenFile(Conf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
 			log.SetOutput(file)
 		}
 	}
 	log.SetLevel(env)
-	log.Info("Server Start ", conf.Listen)
+	log.Info("Server Start ", Conf.Listen)
 
 	//server start
 	srv := &http.Server{
-		Addr:         conf.Listen,
+		Addr:         Conf.Listen,
 		Handler:      r,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,

@@ -1,4 +1,4 @@
-package handle
+package main
 
 import (
 	"bytes"
@@ -12,20 +12,11 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gusher/model"
-	"github.com/syhlion/gusher/module/config"
-	"github.com/syhlion/requestwork"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Middleware struct {
-	AppData *model.AppData
-	Config  *config.Config
-	Worker  *requestwork.Worker
-}
-
 //Middleware use
-func (m *Middleware) Use(h http.HandlerFunc, middleware ...func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
+func MiddlewareUse(h http.HandlerFunc, middleware ...func(http.HandlerFunc) http.HandlerFunc) http.HandlerFunc {
 	for _, m := range middleware {
 		h = m(h)
 	}
@@ -33,10 +24,10 @@ func (m *Middleware) Use(h http.HandlerFunc, middleware ...func(http.HandlerFunc
 	return h
 }
 
-func (m *Middleware) AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
+func AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ips := strings.Split(r.RemoteAddr, ":")
-		for _, allow := range m.Config.AllowAccessApiIP {
+		for _, allow := range Conf.AllowAccessApiIP {
 			if vailed, err := regexp.Compile(allow); err == nil {
 				if vailed.MatchString(ips[0]) {
 					h.ServeHTTP(w, r)
@@ -51,7 +42,7 @@ func (m *Middleware) AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (m *Middleware) LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
+func LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info(r.RemoteAddr, " ", r.Method, " ", r.RequestURI, " ", r.Header.Get("Authorization"))
 		h.ServeHTTP(w, r)
@@ -59,11 +50,11 @@ func (m *Middleware) LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
+func ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
 		token := r.FormValue("token")
-		data, err := m.AppData.Get(params["app_key"])
+		data, err := Model.Get(params["app_key"])
 		if err != nil {
 			http.Error(w, err.Error(), 404)
 			return
@@ -95,54 +86,33 @@ func (m *Middleware) ConnectWebHook(h http.HandlerFunc) http.HandlerFunc {
 		}
 		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 		req.Header.Add("Content-Length", strconv.Itoa(len(v.Encode())))
-		result := make(chan map[string]string)
-		callback := func(resp *http.Response, err error) {
-			rs := make(map[string]string)
-			if err != nil {
-				rs["error"] = err.Error()
-				result <- rs
-				close(result)
-				return
-			}
-			b, err := ioutil.ReadAll(resp.Body)
-			defer resp.Body.Close()
-			if err != nil {
-				rs["error"] = err.Error()
-				result <- rs
-				close(result)
-				return
-			}
-			ret := string(b)
-			if ret != params["user_tag"] {
-				rs["error"] = "Error user_tag " + params["user_tag"] + ", response user_tag " + ret
-				result <- rs
-				close(result)
-				return
-			}
-			rs["scuess"] = ret
-			result <- rs
-
-			close(result)
+		resp, err := ReqWorker.Execute(req)
+		if err != nil {
+			log.Warn("Hook Error")
+			http.Error(w, err.Error(), 404)
+			return
 		}
-		job := &requestwork.Job{
-			Resq:    req,
-			Command: callback,
+		b, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			log.Warn(err)
+			http.Error(w, err.Error(), 404)
+			return
 		}
-		m.Worker.JobQuene <- job
-		rs := <-result
-		if v, ok := rs["error"]; ok {
-			log.Warn(r.RemoteAddr, " ", v)
-			http.Error(w, v, 404)
+		ret := string(b)
+		if ret != params["user_tag"] {
+			log.Warn("Error user_tag " + params["user_tag"] + ", response user_tag " + ret)
+			http.Error(w, "Error user_tag "+params["user_tag"]+", response user_tag "+ret, 404)
 			return
 		}
 		h.ServeHTTP(w, r)
 	}
 }
 
-func (m *Middleware) AppKeyVerity(h http.HandlerFunc) http.HandlerFunc {
+func AppKeyVerity(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		params := mux.Vars(r)
-		if !m.AppData.IsExist(params["app_key"]) {
+		if !Model.IsExist(params["app_key"]) {
 			log.Warn(r.RemoteAddr, " ", params["app_key"]+" app_key does not exist")
 			http.Error(w, "app_key does not exist", 404)
 			return
@@ -151,7 +121,7 @@ func (m *Middleware) AppKeyVerity(h http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
+func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("WWW-Authenicate", `Basic realm="Restricted`)
@@ -180,13 +150,13 @@ func (m *Middleware) BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 
 		//super admin 可通過任何api
 
-		if pair[0] == m.Config.AuthAccount && bcrypt.CompareHashAndPassword([]byte(m.Config.AuthPassword), []byte(pair[0]+pair[1])) == nil {
+		if pair[0] == Conf.AuthAccount && bcrypt.CompareHashAndPassword([]byte(Conf.AuthPassword), []byte(pair[0]+pair[1])) == nil {
 			h.ServeHTTP(w, r)
 			return
 		}
 
 		if params["app_key"] != "" {
-			data, err := m.AppData.Get(params["app_key"])
+			data, err := Model.Get(params["app_key"])
 			if err != nil {
 				log.Warn(r.RemoteAddr, " ", err.Error())
 				http.Error(w, err.Error(), 401)

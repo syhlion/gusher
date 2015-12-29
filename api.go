@@ -1,18 +1,17 @@
-package handle
+package main
 
 import (
 	"encoding/json"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"regexp"
 	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
-	"github.com/syhlion/gusher/model"
+	"github.com/syhlion/gwspack"
 )
 
-func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
+func AppList(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	limit, err := strconv.Atoi(params["limit"])
@@ -24,7 +23,7 @@ func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
 		log.Warn("ParseError")
 	}
 
-	rs, err := h.AppData.GetAll()
+	rs, err := Model.GetAll()
 	if err != nil {
 		log.Error(err)
 		http.Error(w, err.Error(), 500)
@@ -34,7 +33,7 @@ func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
 	//pagination
 	offset := (page - 1) * limit
 	count := 0
-	var tmprs []model.AppDataResult
+	var tmprs []AppDataResult
 	for n, v := range rs {
 		if n >= offset {
 			count++
@@ -58,7 +57,7 @@ func (h *Handler) AppList(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handler) Unregister(w http.ResponseWriter, r *http.Request) {
+func Unregister(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
 	if app_key == "" {
@@ -66,7 +65,7 @@ func (h *Handler) Unregister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "app_key empty", 404)
 		return
 	}
-	err := h.AppData.Delete(app_key)
+	err := Model.Delete(app_key)
 	if err != nil {
 
 		log.Warn(r.RemoteAddr, " ", err)
@@ -79,7 +78,7 @@ func (h *Handler) Unregister(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
+func ListClient(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	app_key := params["app_key"]
 	if app_key == "" {
@@ -96,36 +95,33 @@ func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
 		log.Warn("ParseError")
 	}
 
-	app, err := h.Collection.Get(app_key)
+	app := gwspack.Get(app_key)
 
-	if err != nil {
-		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
-		http.Error(w, err.Error(), 403)
-		return
-	}
-	onlineUsers := app.GetAllUserTag()
+	onlineUsers := app.List()
 
 	//pagination
-	offset := (page - 1) * limit
-	count := 0
-	var tmprs []string
-	for n, v := range onlineUsers {
-		if n >= offset {
-			count++
-			tmprs = append(tmprs, v)
-			if count == limit {
-				break
+	/*
+		offset := (page - 1) * limit
+		count := 0
+		var tmprs []string
+		n:=0
+		for k, _ := range onlineUsers {
+			n++
+			if n >= offset {
+				count++
+				tmprs = append(tmprs, k)
+				if count == limit {
+					break
+
+				}
 
 			}
-
-		}
-	}
+		}*/
 	lo := ListOnlineResult{
-		AppKey:   app_key,
-		Total:    len(onlineUsers),
-		UserTags: tmprs,
-		Limit:    limit,
-		Page:     page,
+		AppKey: app_key,
+		Total:  len(onlineUsers),
+		Limit:  limit,
+		Page:   page,
 	}
 	log.Info(r.RemoteAddr, " GetAppUsers")
 	json.NewEncoder(w).Encode(lo)
@@ -133,7 +129,7 @@ func (h *Handler) ListClient(w http.ResponseWriter, r *http.Request) {
 }
 
 //註冊
-func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+func Register(w http.ResponseWriter, r *http.Request) {
 	app_key := r.FormValue("app_key")
 	auth_password := r.FormValue("auth_password")
 	auth_account := r.FormValue("auth_account")
@@ -155,7 +151,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	auth_password = string(hash_password)
 
-	err = h.AppData.Register(app_key, auth_account, auth_password, connect_hook, request_ip)
+	err = Model.Register(app_key, auth_account, auth_password, connect_hook, request_ip)
 
 	if err != nil {
 		log.Warn(r.RemoteAddr, " ", err)
@@ -172,7 +168,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 //Push
-func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
+func Push(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 	app_key := params["app_key"]
@@ -187,28 +183,12 @@ func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app, err := h.Collection.Get(app_key)
-	if err != nil {
-		log.Warn(r.RemoteAddr, " ", app_key, " ", err)
-		http.Error(w, err.Error(), 403)
-		return
-	}
-	totalResult := 0
+	app := gwspack.Get(app_key)
 	b := []byte(content)
 	if user_tag == "" {
-		app.Boradcast <- b
-		totalResult = len(app.Connections)
+		app.SendAll(b)
 	} else {
-		for client := range app.Connections {
-			if vailed, err := regexp.Compile(user_tag); err == nil {
-				if vailed.MatchString(client.Tag) {
-
-					client.Send <- b
-					totalResult++
-				}
-			}
-
-		}
+		app.SendByRegex(user_tag, b)
 
 	}
 
@@ -216,7 +196,6 @@ func (h *Handler) Push(w http.ResponseWriter, r *http.Request) {
 		AppKey:  app_key,
 		Content: content,
 		UserTag: user_tag,
-		Total:   totalResult,
 	}
 
 	log.Info(r.RemoteAddr, " message send ", content)

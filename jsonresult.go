@@ -1,14 +1,9 @@
-package handle
-
-import (
-	"github.com/syhlion/gusher/model"
-)
+package main
 
 type PushResult struct {
 	AppKey  string `json:"app_key"`
 	Content string `json:"content"`
 	UserTag string `json:"user_tag"`
-	Total   int    `json:"total"`
 }
 type ListOnlineResult struct {
 	AppKey   string   `json:"app_key"`
@@ -29,8 +24,8 @@ type AppResult struct {
 }
 
 type AppListResult struct {
-	Limit int                   `json:"limit"`
-	Page  int                   `json:"page"`
-	Total int                   `json"total"`
-	Data  []model.AppDataResult `json:"data"`
+	Limit int             `json:"limit"`
+	Page  int             `json:"page"`
+	Total int             `json"total"`
+	Data  []AppDataResult `json:"data"`
 }
