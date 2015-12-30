@@ -1,16 +1,16 @@
 package main
 
+import "github.com/syhlion/gwspack"
+
 type PushResult struct {
 	AppKey  string `json:"app_key"`
 	Content string `json:"content"`
 	UserTag string `json:"user_tag"`
 }
 type ListOnlineResult struct {
-	AppKey   string   `json:"app_key"`
-	Total    int      `json:"total"`
-	Limit    int      `json:"limit"`
-	Page     int      `json:"page"`
-	UserTags []string `json:"user_tags"`
+	AppKey   string                      `json:"app_key"`
+	Total    int                         `json:"total"`
+	UserTags map[string]gwspack.UserData `json:"user_tags"`
 }
 type NormalResult struct {
 	Message string `json:"message"`
@@ -24,8 +24,6 @@ type AppResult struct {
 }
 
 type AppListResult struct {
-	Limit int             `json:"limit"`
-	Page  int             `json:"page"`
 	Total int             `json"total"`
 	Data  []AppDataResult `json:"data"`
 }

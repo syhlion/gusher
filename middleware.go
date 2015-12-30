@@ -27,7 +27,7 @@ func MiddlewareUse(h http.HandlerFunc, middleware ...func(http.HandlerFunc) http
 func AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ips := strings.Split(r.RemoteAddr, ":")
-		for _, allow := range Conf.AllowAccessApiIP {
+		for _, allow := range GlobalConf.AllowAccessApiIP {
 			if vailed, err := regexp.Compile(allow); err == nil {
 				if vailed.MatchString(ips[0]) {
 					h.ServeHTTP(w, r)
@@ -43,6 +43,7 @@ func AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
 }
 
 func LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Info(r.RemoteAddr, " ", r.Method, " ", r.RequestURI, " ", r.Header.Get("Authorization"))
 		h.ServeHTTP(w, r)
@@ -122,7 +123,6 @@ func AppKeyVerity(h http.HandlerFunc) http.HandlerFunc {
 }
 
 func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("WWW-Authenicate", `Basic realm="Restricted`)
 		s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
@@ -149,8 +149,7 @@ func BasicAuth(h http.HandlerFunc) http.HandlerFunc {
 		var password string
 
 		//super admin 可通過任何api
-
-		if pair[0] == Conf.AuthAccount && bcrypt.CompareHashAndPassword([]byte(Conf.AuthPassword), []byte(pair[0]+pair[1])) == nil {
+		if pair[0] == GlobalConf.AuthAccount && bcrypt.CompareHashAndPassword([]byte(GlobalConf.AuthPassword), []byte(pair[0]+pair[1])) == nil {
 			h.ServeHTTP(w, r)
 			return
 		}

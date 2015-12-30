@@ -8,7 +8,6 @@ func Router() (router *mux.Router) {
 	router = mux.NewRouter()
 
 	//middleware.use()//先寫後執行
-
 	// ws handshake
 	router.HandleFunc("/ws/{app_key}/{user_tag}", MiddlewareUse(WSConnect, ConnectWebHook, AppKeyVerity, LogHttpRequest)).Methods("GET")
 
@@ -22,9 +21,9 @@ func Router() (router *mux.Router) {
 	router.HandleFunc("/api/{app_key}/unregister", MiddlewareUse(Unregister, AppKeyVerity, BasicAuth, AllowAccessApiIP, LogHttpRequest)).Methods("DELETE")
 
 	//list app
-	router.HandleFunc("/api/app-list/{limit:[0-9]+}/{page:[0-9]+}", MiddlewareUse(AppList, BasicAuth, AllowAccessApiIP, LogHttpRequest)).Methods("GET")
+	router.HandleFunc("/api/app-list", MiddlewareUse(AppList, BasicAuth, AllowAccessApiIP, LogHttpRequest)).Methods("GET")
 
 	//list how many client
-	router.HandleFunc("/api/{app_key}/listonlineuser/{limit:[0-9]+}/{page:[0-9]+}", MiddlewareUse(ListClient, AppKeyVerity, BasicAuth, AllowAccessApiIP, LogHttpRequest)).Methods("GET")
+	router.HandleFunc("/api/{app_key}/listonlineuser", MiddlewareUse(ListClient, AppKeyVerity, BasicAuth, AllowAccessApiIP, LogHttpRequest)).Methods("GET")
 	return
 }

@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
-	"strconv"
+
+	"golang.org/x/crypto/bcrypt"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -13,16 +13,6 @@ import (
 
 func AppList(w http.ResponseWriter, r *http.Request) {
 
-	params := mux.Vars(r)
-	limit, err := strconv.Atoi(params["limit"])
-	if err != nil {
-		log.Warn("ParseError")
-	}
-	page, err := strconv.Atoi(params["page"])
-	if err != nil {
-		log.Warn("ParseError")
-	}
-
 	rs, err := Model.GetAll()
 	if err != nil {
 		log.Error(err)
@@ -30,24 +20,11 @@ func AppList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//pagination
-	offset := (page - 1) * limit
-	count := 0
 	var tmprs []AppDataResult
-	for n, v := range rs {
-		if n >= offset {
-			count++
-			tmprs = append(tmprs, v)
-			if count == limit {
-				break
-
-			}
-
-		}
+	for _, v := range rs {
+		tmprs = append(tmprs, v)
 	}
 	result := AppListResult{
-		Limit: limit,
-		Page:  page,
 		Total: len(rs),
 		Data:  tmprs,
 	}
@@ -86,42 +63,14 @@ func ListClient(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "app_key empty", 404)
 		return
 	}
-	limit, err := strconv.Atoi(params["limit"])
-	if err != nil {
-		log.Warn("ParseError")
-	}
-	page, err := strconv.Atoi(params["page"])
-	if err != nil {
-		log.Warn("ParseError")
-	}
-
 	app := gwspack.Get(app_key)
 
 	onlineUsers := app.List()
 
-	//pagination
-	/*
-		offset := (page - 1) * limit
-		count := 0
-		var tmprs []string
-		n:=0
-		for k, _ := range onlineUsers {
-			n++
-			if n >= offset {
-				count++
-				tmprs = append(tmprs, k)
-				if count == limit {
-					break
-
-				}
-
-			}
-		}*/
 	lo := ListOnlineResult{
-		AppKey: app_key,
-		Total:  len(onlineUsers),
-		Limit:  limit,
-		Page:   page,
+		AppKey:   app_key,
+		Total:    len(onlineUsers),
+		UserTags: onlineUsers,
 	}
 	log.Info(r.RemoteAddr, " GetAppUsers")
 	json.NewEncoder(w).Encode(lo)

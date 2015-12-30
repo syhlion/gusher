@@ -3,15 +3,16 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/syhlion/requestwork"
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
-	"os"
-	"strconv"
-	"time"
 )
 
 var (
@@ -19,7 +20,7 @@ var (
 		Name:        "start",
 		Usage:       "Start GoPusher server",
 		Description: `GoPusher Start`,
-		Action:      start,
+		Action:      Start,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "conf, c",
@@ -28,15 +29,15 @@ var (
 			},
 		},
 	}
-	InitStart = cli.Command{
+	CmdInitConfig = cli.Command{
 		Name:        "init",
 		Usage:       "Init Gusher Server Config",
 		Description: "Init Gusher Server Config",
-		Action:      initStart,
+		Action:      InitConfig,
 	}
-	Model     *AppData            = nil
-	ReqWorker *requestwork.Worker = nil
-	Conf      *Config             = nil
+	Model      *AppData
+	ReqWorker  *requestwork.Worker
+	GlobalConf *Config
 )
 
 func DBinit(sqlDir string) (db *sql.DB, err error) {
@@ -56,13 +57,13 @@ func DBinit(sqlDir string) (db *sql.DB, err error) {
 }
 
 //Server執行動作
-func start(c *cli.Context) {
+func Start(c *cli.Context) {
 
 	logformat := &log.TextFormatter{FullTimestamp: true}
 	log.SetFormatter(logformat)
 
-	Conf := ConfigGet(c.String("conf"))
-	db, err := DBinit(Conf.SqlFile)
+	GlobalConf = ConfigGet(c.String("conf"))
+	db, err := DBinit(GlobalConf.SqlFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,14 +72,14 @@ func start(c *cli.Context) {
 	//init requestwork
 	ReqWorker = requestwork.New(&http.Client{
 		Timeout: time.Duration(5 * time.Second),
-	}, Conf.MaxWaitHook)
+	}, GlobalConf.MaxWaitHook)
 
 	//init router
 	r := Router()
 
 	//init env
 	env := func() log.Level {
-		switch Conf.Environment {
+		switch GlobalConf.Environment {
 		case "PRODUCTION":
 			return log.WarnLevel
 			break
@@ -93,18 +94,18 @@ func start(c *cli.Context) {
 	}()
 
 	//init log print
-	if Conf.LogFile != "console" {
-		if file, err := os.OpenFile(Conf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
+	if GlobalConf.LogFile != "console" {
+		if file, err := os.OpenFile(GlobalConf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
 			logformat.DisableColors = true
 			log.SetOutput(file)
 		}
 	}
 	log.SetLevel(env)
-	log.Info("Server Start ", Conf.Listen)
+	log.Info("Server Start ", GlobalConf.Listen)
 
 	//server start
 	srv := &http.Server{
-		Addr:         Conf.Listen,
+		Addr:         GlobalConf.Listen,
 		Handler:      r,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
@@ -112,7 +113,7 @@ func start(c *cli.Context) {
 	log.Fatal(srv.ListenAndServe())
 }
 
-func initStart(c *cli.Context) {
+func InitConfig(c *cli.Context) {
 	conf := Config{}
 
 	//Set Listen Port

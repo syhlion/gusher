@@ -7,20 +7,18 @@ import (
 )
 
 const (
-	APP_VER = "0.8.3"
+	APP_VER = "1.0.0"
 )
 
 //進入點
 func main() {
-
 	gopusher := cli.NewApp()
 	gopusher.Name = "gusher"
 	gopusher.Version = APP_VER
 	gopusher.Commands = []cli.Command{
 		CmdStart,
-		InitStart,
+		CmdInitConfig,
 	}
-
 	gopusher.Run(os.Args)
 
 }

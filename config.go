@@ -2,8 +2,9 @@ package main
 
 import (
 	"encoding/json"
-	log "github.com/Sirupsen/logrus"
 	"os"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 type Config struct {
@@ -25,13 +26,13 @@ func ConfigGet(configfile string) *Config {
 		log.Fatal("Please exec ./gusher init")
 	}
 	decoder := json.NewDecoder(file)
-	config := Config{}
-	err = decoder.Decode(&config)
+	config := &Config{}
+	err = decoder.Decode(config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &config
+	return config
 }
 
 func ConfigWrite(config Config) (err error) {
