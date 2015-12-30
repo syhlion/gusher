@@ -1,4 +1,4 @@
-package model
+package main
 
 import (
 	"database/sql"
@@ -24,10 +24,6 @@ type AppDataResult struct {
 }
 type AppData struct {
 	db *sql.DB
-}
-
-func NewAppData(db *sql.DB) *AppData {
-	return &AppData{db}
 }
 
 func (d *AppData) IsExist(app_key string) bool {

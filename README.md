@@ -103,14 +103,12 @@ connect_hook | string | You can take this verification [webhook](https://github.
 
 #### List All App:  
 
-`[GET] /api/app-list/{limit}/{page}`  
+`[GET] /api/app-list`  
 
 * 200 status Response:
 
 ```
 {
-    "limit":2,
-    "offset":1,
     "total":2,
     "data":
     [
@@ -156,13 +154,12 @@ user_tag | string | the message who will receive. Support Regex. Optinal
     "app_key":"abcdefghijklmnop",
     "content":"hello world",
     "user_tag":"A:1"
-    "total":"1"   // receive this message client total
 }
 ```
 
 #### List Online User:  
 
-`[GET] /api/{app_key}/listonlineuser/{limit}/{page}`  
+`[GET] /api/{app_key}/listonlineuser`  
 
 * 200 status Response:
 
@@ -170,9 +167,7 @@ user_tag | string | the message who will receive. Support Regex. Optinal
 {
     "app_key":"abcdefghijklmnop",
     "total":1,
-    "limit":1,
-    "page":1
-    "user_tags":["A:1"]
+    "user_tags":{"bbbb":null,"tttt":null}
 }
 ```
 

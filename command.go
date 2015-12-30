@@ -1,23 +1,120 @@
-package cmd
+package main
 
 import (
+	"database/sql"
 	"fmt"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
-	"github.com/syhlion/gusher/module/config"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/syhlion/requestwork"
 	"golang.org/x/crypto/bcrypt"
-	"strconv"
 )
 
-var InitStart = cli.Command{
-	Name:        "init",
-	Usage:       "Init Gusher Server Config",
-	Description: "Init Gusher Server Config",
-	Action:      initStart,
+var (
+	CmdStart = cli.Command{
+		Name:        "start",
+		Usage:       "Start GoPusher server",
+		Description: `GoPusher Start`,
+		Action:      Start,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "conf, c",
+				Value: "./config.json",
+				Usage: "Input default.json",
+			},
+		},
+	}
+	CmdInitConfig = cli.Command{
+		Name:        "init",
+		Usage:       "Init Gusher Server Config",
+		Description: "Init Gusher Server Config",
+		Action:      InitConfig,
+	}
+	Model      *AppData
+	ReqWorker  *requestwork.Worker
+	GlobalConf *Config
+)
+
+func DBinit(sqlDir string) (db *sql.DB, err error) {
+	db, err = sql.Open("sqlite3", sqlDir)
+	if err != nil {
+		return
+	}
+
+	sqlStmt := `
+	create table if not exists appdata (app_key PRIMARY KEY,auth_account,auth_password,connect_hook,request_ip,timestamp,date)
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		return
+	}
+	return
 }
 
-func initStart(c *cli.Context) {
-	conf := config.Config{}
+//Server執行動作
+func Start(c *cli.Context) {
+
+	logformat := &log.TextFormatter{FullTimestamp: true}
+	log.SetFormatter(logformat)
+
+	GlobalConf = ConfigGet(c.String("conf"))
+	db, err := DBinit(GlobalConf.SqlFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	Model = &AppData{db}
+	//init requestwork
+	ReqWorker = requestwork.New(&http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}, GlobalConf.MaxWaitHook)
+
+	//init router
+	r := Router()
+
+	//init env
+	env := func() log.Level {
+		switch GlobalConf.Environment {
+		case "PRODUCTION":
+			return log.WarnLevel
+			break
+		case "DEVELOPMENT":
+			return log.InfoLevel
+			break
+		case "DEBUG":
+			return log.DebugLevel
+			break
+		}
+		return log.InfoLevel
+	}()
+
+	//init log print
+	if GlobalConf.LogFile != "console" {
+		if file, err := os.OpenFile(GlobalConf.LogFile, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0665); err == nil {
+			logformat.DisableColors = true
+			log.SetOutput(file)
+		}
+	}
+	log.SetLevel(env)
+	log.Info("Server Start ", GlobalConf.Listen)
+
+	//server start
+	srv := &http.Server{
+		Addr:         GlobalConf.Listen,
+		Handler:      r,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+	log.Fatal(srv.ListenAndServe())
+}
+
+func InitConfig(c *cli.Context) {
+	conf := Config{}
 
 	//Set Listen Port
 	fmt.Print("Please Input Listen Port (Default: ':8001'):")
@@ -101,7 +198,7 @@ func initStart(c *cli.Context) {
 
 	fmt.Println("Input: ", ips)
 	fmt.Printf("Result Json: %+v\n", conf)
-	err = config.Write(conf)
+	err = ConfigWrite(conf)
 	if err != nil {
 		log.Fatal(err)
 	}

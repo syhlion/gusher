@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ type Config struct {
 	AllowAccessApiIP []string `json:"allow_access_api_ip"`
 }
 
-func Get(configfile string) *Config {
+func ConfigGet(configfile string) *Config {
 	file, err := os.OpenFile(configfile, os.O_RDONLY, 0655)
 	defer file.Close()
 	if err != nil {
@@ -26,16 +26,16 @@ func Get(configfile string) *Config {
 		log.Fatal("Please exec ./gusher init")
 	}
 	decoder := json.NewDecoder(file)
-	config := Config{}
-	err = decoder.Decode(&config)
+	config := &Config{}
+	err = decoder.Decode(config)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &config
+	return config
 }
 
-func Write(config Config) (err error) {
+func ConfigWrite(config Config) (err error) {
 	os.Remove("./config.json")
 	file, err := os.OpenFile("./config.json", os.O_CREATE|os.O_RDWR, 0600)
 	defer file.Close()
