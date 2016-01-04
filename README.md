@@ -153,7 +153,8 @@ user_tag | string | the message who will receive. Support Regex. Optinal
 {
     "app_key":"abcdefghijklmnop",
     "content":"hello world",
-    "user_tag":"A:1"
+    "user_tag":"A:1",
+    "total":1
 }
 ```
 

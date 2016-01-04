@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	APP_VER = "1.0.0"
+	APP_VER = "1.0.1"
 )
 
 //進入點

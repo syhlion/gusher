@@ -6,6 +6,7 @@ type PushResult struct {
 	AppKey  string `json:"app_key"`
 	Content string `json:"content"`
 	UserTag string `json:"user_tag"`
+	Total   int    `json:"total:`
 }
 type ListOnlineResult struct {
 	AppKey   string                      `json:"app_key"`

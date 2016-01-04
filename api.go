@@ -145,6 +145,7 @@ func Push(w http.ResponseWriter, r *http.Request) {
 		AppKey:  app_key,
 		Content: content,
 		UserTag: user_tag,
+		Total:   app.CountById(),
 	}
 
 	log.Info(r.RemoteAddr, " message send ", content)
