@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -22,24 +21,6 @@ func MiddlewareUse(h http.HandlerFunc, middleware ...func(http.HandlerFunc) http
 	}
 
 	return h
-}
-
-func AllowAccessApiIP(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ips := strings.Split(r.RemoteAddr, ":")
-		for _, allow := range GlobalConf.AllowAccessApiIP {
-			if vailed, err := regexp.Compile(allow); err == nil {
-				if vailed.MatchString(ips[0]) {
-					h.ServeHTTP(w, r)
-					return
-
-				}
-			}
-		}
-		log.Warn(r.RemoteAddr, " IP DENY")
-		http.Error(w, "IP DENY", 404)
-		return
-	}
 }
 
 func LogHttpRequest(h http.HandlerFunc) http.HandlerFunc {

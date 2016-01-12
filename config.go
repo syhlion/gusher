@@ -8,14 +8,14 @@ import (
 )
 
 type Config struct {
-	AuthAccount      string   `json:"auth_account"`
-	AuthPassword     string   `json:"auth_password"`
-	Environment      string   `json:"environment"`
-	LogFile          string   `json:"logfile"`
-	Listen           string   `json:"listen"`
-	SqlFile          string   `json:"sqlfile"`
-	MaxWaitHook      int      `json:"max_wait_hook"`
-	AllowAccessApiIP []string `json:"allow_access_api_ip"`
+	AuthAccount  string `json:"auth_account"`
+	AuthPassword string `json:"auth_password"`
+	Environment  string `json:"environment"`
+	LogFile      string `json:"logfile"`
+	Listen       string `json:"listen"`
+	ApiListen    string `json:"api_listen"`
+	SqlFile      string `json:"sqlfile"`
+	MaxWaitHook  int    `json:"max_wait_hook"`
 }
 
 func ConfigGet(configfile string) *Config {

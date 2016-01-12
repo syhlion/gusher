@@ -75,7 +75,8 @@ func Start(c *cli.Context) {
 	}, GlobalConf.MaxWaitHook)
 
 	//init router
-	r := Router()
+	publicRouter := PublicRouter()
+	privateRouter := PrivateRouter()
 
 	//init env
 	env := func() log.Level {
@@ -101,16 +102,39 @@ func Start(c *cli.Context) {
 		}
 	}
 	log.SetLevel(env)
-	log.Info("Server Start ", GlobalConf.Listen)
+	log.Info("Server Start ", GlobalConf.Listen, ", Api Port ", GlobalConf.ApiListen)
 
 	//server start
 	srv := &http.Server{
 		Addr:         GlobalConf.Listen,
-		Handler:      r,
+		Handler:      publicRouter,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
-	log.Fatal(srv.ListenAndServe())
+	privateSrv := &http.Server{
+		Addr:         GlobalConf.ApiListen,
+		Handler:      privateRouter,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+	privateSrvError := make(chan error)
+	srvError := make(chan error)
+	go func() {
+		privateSrvError <- privateSrv.ListenAndServe()
+	}()
+	go func() {
+		srvError <- srv.ListenAndServe()
+	}()
+	for {
+		select {
+		case err := <-privateSrvError:
+			log.Fatal(err)
+			break
+		case err := <-srvError:
+			log.Fatal(err)
+			break
+		}
+	}
 }
 
 func InitConfig(c *cli.Context) {
@@ -123,6 +147,14 @@ func InitConfig(c *cli.Context) {
 		conf.Listen = ":8001"
 	}
 	fmt.Println("Input: ", conf.Listen)
+
+	//Set Listen Port
+	fmt.Print("Please Input Api Listen Port (Default: ':8002'):")
+	fmt.Scanf("%v\n", &conf.ApiListen)
+	if conf.ApiListen == "" {
+		conf.ApiListen = ":8002"
+	}
+	fmt.Println("Input: ", conf.ApiListen)
 
 	//Set Account
 	fmt.Print("Please Input Admin Auth Account (Default: 'account'):")
@@ -185,18 +217,6 @@ func InitConfig(c *cli.Context) {
 	}
 	fmt.Println("Input: ", conf.MaxWaitHook)
 
-	//Set AllowAccessApiIP
-	fmt.Print("Please Input Allow Access Api IP(Default: '' <- it means allow all Ex: 192.168  or 127.0.0.1 :")
-	var ip string
-	var ips []string
-	fmt.Scanf("%v\n", &ip)
-	if ip == "" {
-		ip = ""
-	}
-	ips = append(ips, ip)
-	conf.AllowAccessApiIP = ips
-
-	fmt.Println("Input: ", ips)
 	fmt.Printf("Result Json: %+v\n", conf)
 	err = ConfigWrite(conf)
 	if err != nil {

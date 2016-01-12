@@ -51,9 +51,9 @@ Default generate
         "environment":"DEBUG", // DEBUG || DEVELOPMENT || PRODUCATION
         "logfile":"./", // "console" or "/homs/user/x.log"
         "listen":":8001",
+        "api_listen":":8002",
         "sqlfile":"./appdata.sqlite",
         "max_wait_hook":10,
-        "allow_access_api_ip":[""]//IP White list Ex ["192.168","127.0"] Does not support ipv6 
 }
                         
 ```
@@ -61,7 +61,9 @@ Default generate
 
 ## API
 
-All api need http basic Auth, Super Admin can access all api
+Only Private Api need http basic Auth, Super Admin can access all Private Api
+
+### Private Api (use key of api_listen port)
 
 #### Register:
 
@@ -171,6 +173,8 @@ user_tag | string | the message who will receive. Support Regex. Optinal
     "user_tags":{"bbbb":null,"tttt":null}
 }
 ```
+
+### Public Api (use key of listen port)
 
 #### Client Connect:  
 
