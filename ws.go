@@ -23,7 +23,6 @@ func WSConnect(w http.ResponseWriter, r *http.Request) {
 	c, err := app.Register(user_tag, w, r, nil)
 	if err != nil {
 		log.Warn(r.RemoteAddr, " ", err)
-		http.Error(w, err.Error(), 403)
 		return
 	}
 
