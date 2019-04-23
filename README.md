@@ -2,6 +2,11 @@
 
 [Pusher](https://pusher.com/docs) implment server-side by golang
 
+
+## Deprecated
+
+Please use new project [gusher.clsuter](https://github.com/syhlion/gusher.cluster)
+
 ## Requirements
 
 * sqlite 3
